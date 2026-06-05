@@ -40,12 +40,12 @@ void Encoder_Soft_Poll(void)
 }
 
 /*******************************************************
-Function:Initialize TIM1 to encoder interface mode
-Input   ;none
+Function:Initialize TIM8 to encoder interface mode
+Input   :none
 Output  :none
-����    ����TIM1��ʼ��Ϊ�������ӿ�ģʽ
-��ڲ�������
-����ֵ  ����
+����    :��TIM8��ʼ��Ϊ�������ӿ�ģʽ
+��ڲ���:��
+����ֵ  :��
 ********************************************************/
 void Encoder_Init_Tim8(void)
 {
@@ -122,12 +122,12 @@ void Encoder_Init_Tim2(void)
 }
 
 /*******************************************************
-Function:Initialize TIM2 to encoder interface mode
-Input   ;none
+Function:Initialize TIM3 to encoder interface mode
+Input   :none
 Output  :none
-����    ����TIM2��ʼ��Ϊ�������ӿ�ģʽ
-��ڲ�������
-����ֵ  ����
+����    :��TIM3��ʼ��Ϊ�������ӿ�ģʽ
+��ڲ���:��
+����ֵ  :��
 ********************************************************/
 void Encoder_Init_Tim3(void)
 {
@@ -234,14 +234,14 @@ void TIM4_IRQHandler(void)
 	TIM4->SR&=~(1<<0);//����жϱ�־λ 	    
 }
 /**************************************************************************
-Function: TIM1 interrupt service function
+Function: TIM8 Update interrupt service function
 Input   : none
 Output  : none
-�������ܣ�TIM1�жϷ�����
-��ڲ�������
-����  ֵ����
+�������ܣ�TIM8 �����жϷ�����
+��ڲ���:��
+����  ֵ:��
 **************************************************************************/
-void TIM8_IRQHandler(void)
+void TIM8_UP_IRQHandler(void)
 { 		    		  			    
 	if(TIM8->SR&0X0001)//����ж�
 	{    				   				     	    	
