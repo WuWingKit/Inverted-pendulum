@@ -1,0 +1,41 @@
+# Keil MDK build artifacts
+*.uvguix.*
+*.scvd
+*.crf
+*.d
+*.o
+*.axf
+*.hex
+*.bin
+*.htm
+*.dep
+*.JLinkLog.txt
+*.iex
+*.tra
+*.map
+*.lst
+*.lnp
+*.plg
+*.build_log.htm
+*.iex
+*.tra
+
+# JLink settings
+JLinkSettings.ini
+
+# Backup files
+*.bak
+*~
+
+# Listings and output
+Listings/
+Output/
+
+# Debug settings
+DebugConfig/
+RTE/
+
+# IDE temp files
+*.uvoptx
+*.orig
+*.tmp
