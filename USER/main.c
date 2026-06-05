@@ -15,7 +15,7 @@ WHEELTEC D24Ademo - 霍尔编码器四轮电机控制
 LCD实时显示四路电机速度与PWM调试数据
 **************************************************************************/
 
-int TargetVelocity=500;
+int TargetVelocity=300;
 
 // LCD显示缓冲
 void LCD_Show_Debug(int *enc, int *pwm, float vcc)
