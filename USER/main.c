@@ -79,7 +79,8 @@ int main(void)
 	Encoder_Init_Tim8();
 	Encoder_Init_Tim2();
 	Encoder_Init_Tim3();
-	Encoder_Init_Soft(); // D电机编码器→PB10/PB11软件解码
+	Encoder_Init_Soft(); // D电机编码器→PA8/PA4软件解码
+	Encoder_Timer_Init(); // 启动1ms定时器轮询D编码器
 
 	// 初始化LCD
 	LCD_Init();
@@ -92,8 +93,7 @@ int main(void)
 		adcx = Get_adc_Average(ADC_Channel_5, 10);
 		vcc = (float)adcx * (3.3 * 11 / 4096);
 
-		// 读取编码器 (D电机用PB10/PB11软件解码)
-		Encoder_Soft_Poll(); // 轮询PB10/PB11正交解码
+		// 读取编码器 (D电机用PA8/PA4软件解码)
 		encoder[0] = Read_Encoder(8);
 		encoder[1] = Read_Encoder(2);
 		encoder[2] = Read_Encoder(3);
