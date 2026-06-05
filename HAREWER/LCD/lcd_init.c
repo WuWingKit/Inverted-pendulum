@@ -190,5 +190,6 @@ void LCD_Init(void)
 
 	LCD_WR_REG(0x3A);
 	LCD_WR_DATA8(0x05);
+
 	LCD_WR_REG(0x29);
 }

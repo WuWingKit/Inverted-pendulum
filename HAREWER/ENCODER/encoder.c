@@ -1,7 +1,7 @@
 #include "encoder.h"
 #include "stm32f10x_gpio.h"
 
-// D电机软件编码器 (PB14=A相, PB15=B相)
+// D电机软件编码器 (PB10=A相, PB11=B相)
 volatile int16_t soft_enc4_cnt = 0;
 static uint8_t soft_enc_last = 0;
 
@@ -12,25 +12,25 @@ void Encoder_Init_Soft(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	// PB14/PB15 浮空输入
+	// PB10/PB11 浮空输入
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
 	// 读取初始状态
 	soft_enc_last = 0;
-	if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_14)) soft_enc_last |= 0x01;
-	if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_15)) soft_enc_last |= 0x02;
+	if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_10)) soft_enc_last |= 0x01;
+	if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_11)) soft_enc_last |= 0x02;
 }
 
-// 主循环中调用，轮询PB14/PB15做正交解码
+// 主循环中调用，轮询PB10/PB11做正交解码
 void Encoder_Soft_Poll(void)
 {
 	uint8_t cur, idx;
 	cur = 0;
-	if(GPIOB->IDR & GPIO_Pin_14) cur |= 0x01;
-	if(GPIOB->IDR & GPIO_Pin_15) cur |= 0x02;
+	if(GPIOB->IDR & GPIO_Pin_10) cur |= 0x01;
+	if(GPIOB->IDR & GPIO_Pin_11) cur |= 0x02;
 	if(cur != soft_enc_last)
 	{
 		idx = (soft_enc_last << 2) | cur;
@@ -162,9 +162,9 @@ void Encoder_Init_Tim3(void)
 Function: Initialize TIM4 to encoder interface mode
 Input   : none
 Output  : none
-�������ܣ���TIM4��ʼ��Ϊ�������ӿ�ģʽ
-��ڲ�������
-����  ֵ����
+** 注意：此函数使用 PB6/PB7 (TIM4_CH1/CH2) 硬件编码器，
+** 与 D 电机软件编码器 (Encoder_Init_Soft / PB6/PB7 轮询) 
+** 引脚冲突。当前未在 main.c 中调用，如需启用请先调整引脚分配。
 **************************************************************************/
 void Encoder_Init_Tim4(void)
 {

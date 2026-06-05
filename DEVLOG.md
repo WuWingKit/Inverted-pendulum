@@ -185,6 +185,20 @@ D24Ademo/
 
 ## 开发日志
 
+### 2026-06-05 — LCD调试显示适配 + D编码器引脚调整 + RCT6启动文件更新
+
+- **改动者：** tulip627722
+- **类型：** 功能调整 / Bug修复
+- **改动文件：** HAREWER/LCD/lcd_init.c, HAREWER/LCD/lcd_init.h, HAREWER/ENCODER/encoder.c, USER/main.c, USER/Tb6612demo.uvprojx, HAREWER/MOTO/moto.c, CORE/startup_stm32f10x_hd.s
+- **内容：**
+  - LCD 恢复PDF原始引脚（PB4~PB9），SCLK/PB4, MOSI/PB5, RES/PB6, DC/PB7, CS/PB8, BLK/PB9
+  - D编码器从PB14/PB15改到PB10/PB11（PB14被E3B占用）
+  - 启动文件从 _md.s 更换为 _hd.s（适配STM32F103RCT6高密度芯片）
+  - 恢复LCD初始化序列为原始参数（修复白屏问题，LCD已正常显示调试数据）
+  - PWM限幅从7200调整为7500
+- **验证：** LCD显示正常，A轮速度读数稳定，B/C/D轮待进一步调试
+
+
 ### 2026-06-05 — 项目初始化，Git 仓库配置
 
 - **改动者：** WuWingKit

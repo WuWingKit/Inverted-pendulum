@@ -12,7 +12,7 @@
 
  /**************************************************************************
 WHEELTEC D24Ademo - 霍尔编码器四轮电机控制
-增加LCD显示实时速度，用于调试闭环控制
+LCD实时显示四路电机速度与PWM调试数据
 **************************************************************************/
 
 int TargetVelocity=500;
@@ -79,17 +79,12 @@ int main(void)
 	Encoder_Init_Tim8();
 	Encoder_Init_Tim2();
 	Encoder_Init_Tim3();
-	Encoder_Init_Soft(); // D电机编码器→PB14/PB15软件解码
+	Encoder_Init_Soft(); // D电机编码器→PB10/PB11软件解码
 
 	// 初始化LCD
 	LCD_Init();
 	LCD_Fill(0, 0, 128, 128, BLACK);
 
-	// 开机画面
-	LCD_ShowString(0, 48, (u8*)"Motor Debug", GREEN, BLACK, 16, 0);
-	LCD_ShowString(0, 64, (u8*)"Loading...", GREEN, BLACK, 16, 0);
-	delay_ms(1000);
-	LCD_Fill(0, 0, 128, 128, BLACK);
 
 	while(1)
 	{
@@ -97,8 +92,8 @@ int main(void)
 		adcx = Get_adc_Average(ADC_Channel_5, 10);
 		vcc = (float)adcx * (3.3 * 11 / 4096);
 
-		// 读取编码器 (D电机用PB14/PB15软件解码)
-		Encoder_Soft_Poll(); // 轮询PB14/PB15正交解码
+		// 读取编码器 (D电机用PB10/PB11软件解码)
+		Encoder_Soft_Poll(); // 轮询PB10/PB11正交解码
 		encoder[0] = Read_Encoder(8);
 		encoder[1] = Read_Encoder(2);
 		encoder[2] = Read_Encoder(3);
@@ -110,6 +105,7 @@ int main(void)
 		pwm[2] = Velocity_C(TargetVelocity, encoder[2]);
 		pwm[3] = Velocity_D(TargetVelocity, encoder[3]);
 		Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
+
 
 		// LCD显示调试信息
 		LCD_Show_Debug(encoder, pwm, vcc);

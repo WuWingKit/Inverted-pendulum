@@ -56,8 +56,8 @@ int Velocity_A(int TargetVelocity, int CurrentVelocity)
 		ControlVelocity+=Velcity_Kp*(Bias-Last_bias)+Velcity_Ki*Bias;  //增量式PI控制器
                                                                    //Velcity_Kp*(Bias-Last_bias) 作用为限制加速度
 	                                                                 //Velcity_Ki*Bias             速度控制值由Bias不断积分得到 偏差越大加速度越大
-		if(ControlVelocity>7200)ControlVelocity=7200;
-		if(ControlVelocity<-7200)ControlVelocity=-7200;
+		if(ControlVelocity>7500)ControlVelocity=7500;
+		if(ControlVelocity<-7500)ControlVelocity=-7500;
 		Last_bias=Bias;	
 		return ControlVelocity; //返回速度控制值
 }
@@ -72,8 +72,8 @@ int Velocity_B(int TargetVelocity, int CurrentVelocity)
 		ControlVelocity+=Velcity_Kp*(Bias-Last_bias)+Velcity_Ki*Bias;  //增量式PI控制器
                                                                    //Velcity_Kp*(Bias-Last_bias) 作用为限制加速度
 	                                                                 //Velcity_Ki*Bias             速度控制值由Bias不断积分得到 偏差越大加速度越大
-		if(ControlVelocity>7200)ControlVelocity=7200;
-		if(ControlVelocity<-7200)ControlVelocity=-7200;
+		if(ControlVelocity>7500)ControlVelocity=7500;
+		if(ControlVelocity<-7500)ControlVelocity=-7500;
 		Last_bias=Bias;	
 		return ControlVelocity; //返回速度控制值
 }
@@ -87,8 +87,8 @@ int Velocity_C(int TargetVelocity, int CurrentVelocity)
 		ControlVelocity+=Velcity_Kp*(Bias-Last_bias)+Velcity_Ki*Bias;  //增量式PI控制器
                                                                    //Velcity_Kp*(Bias-Last_bias) 作用为限制加速度
 	                                                                 //Velcity_Ki*Bias             速度控制值由Bias不断积分得到 偏差越大加速度越大
-		if(ControlVelocity>7200)ControlVelocity=7200;
-		if(ControlVelocity<-7200)ControlVelocity=-7200;
+		if(ControlVelocity>7500)ControlVelocity=7500;
+		if(ControlVelocity<-7500)ControlVelocity=-7500;
 		Last_bias=Bias;	
 		return ControlVelocity; //返回速度控制值
 }
@@ -102,8 +102,8 @@ int Velocity_D(int TargetVelocity, int CurrentVelocity)
 		ControlVelocity+=Velcity_Kp*(Bias-Last_bias)+Velcity_Ki*Bias;  //增量式PI控制器
                                                                    //Velcity_Kp*(Bias-Last_bias) 作用为限制加速度
 	                                                                 //Velcity_Ki*Bias             速度控制值由Bias不断积分得到 偏差越大加速度越大
-		if(ControlVelocity>7200)ControlVelocity=7200;
-		if(ControlVelocity<-7200)ControlVelocity=-7200;
+		if(ControlVelocity>7500)ControlVelocity=7500;
+		if(ControlVelocity<-7500)ControlVelocity=-7500;
 		Last_bias=Bias;	
 		return ControlVelocity; //返回速度控制值
 }

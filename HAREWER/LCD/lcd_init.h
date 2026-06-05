@@ -13,7 +13,7 @@
 #define LCD_H 128
 #endif
 
-//LCD引脚定义 - PB4~PB9 (与rfid项目一致)
+//LCD引脚定义 - PB4~PB9 (RES:PB6 DC:PB7)
 #define LCD_SCLK_Clr() GPIO_ResetBits(GPIOB,GPIO_Pin_4)
 #define LCD_SCLK_Set() GPIO_SetBits(GPIOB,GPIO_Pin_4)
 
