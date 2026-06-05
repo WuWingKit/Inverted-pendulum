@@ -244,7 +244,7 @@ int Read_Encoder(u8 TIMX)
    switch(TIMX)
 	 {
 	   case 8:  Encoder_TIM= (short)TIM8 -> CNT;  TIM8 -> CNT=0;break;
-	   case 2:  Encoder_TIM= (short)TIM2 -> CNT;  TIM2 -> CNT=0;break;	
+	   case 2:  Encoder_TIM= -(short)TIM2 -> CNT;  TIM2 -> CNT=0;break;	
 	   case 3:  Encoder_TIM= (short)TIM3 -> CNT;  TIM3 -> CNT=0;break;
 	   case 4:  Encoder_TIM= soft_enc4_cnt;  soft_enc4_cnt=0;break;
 	   default: Encoder_TIM=0;

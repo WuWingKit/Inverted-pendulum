@@ -1,6 +1,6 @@
 #include "moto.h"
 
-float Velcity_Kp=1,  Velcity_Ki=3,  Velcity_Kd; //相关速度PID参数
+float Velcity_Kp=0.5,  Velcity_Ki=0.15,  Velcity_Kd; //相关速度PID参数
 /**************************************************************************
 函数功能：电机的正反转
 入口参数：mode   mode=0时为正转  mode=1时反转
@@ -15,8 +15,8 @@ void moto(int mode)
 	 GPIO_SetBits(GPIOC, GPIO_Pin_14);	 // 高电平      PC14 --- AIN2      1   
 	 GPIO_ResetBits(GPIOC, GPIO_Pin_13);	 // 低电平}   PC13 --- AIN1      0
 	
-	 GPIO_SetBits(GPIOB, GPIO_Pin_13);     //高电平   PB13 --- BIN2       1
-	 GPIO_ResetBits(GPIOB, GPIO_Pin_12);  // 低电平   PB12 --- BIN1       0
+	 GPIO_SetBits(GPIOB, GPIO_Pin_12);     //高电平   PB12 --- BIN2       1 (已修正)
+	 GPIO_ResetBits(GPIOB, GPIO_Pin_13);  // 低电平   PB13 --- BIN1       0 (已修正)
 		
 	 GPIO_SetBits(GPIOB, GPIO_Pin_1);     //高电平   PB1 --- CIN2       1
 	 GPIO_ResetBits(GPIOB, GPIO_Pin_0);  // 低电平   PB0 --- CIN1       0
@@ -30,8 +30,8 @@ void moto(int mode)
 	 GPIO_SetBits(GPIOC, GPIO_Pin_13);	 // 高电平       PC13 --- AIN1     1
 	 GPIO_ResetBits(GPIOC, GPIO_Pin_14);	 // 低电平}    PC14 --- AIN2     0
 	
-	 GPIO_SetBits(GPIOB, GPIO_Pin_12);     //高电平   PB12 --- BIN1     1
-	 GPIO_ResetBits(GPIOB, GPIO_Pin_13);  // 低电平   PB13 --- BIN2        0
+	 GPIO_SetBits(GPIOB, GPIO_Pin_13);     //高电平   PB13 --- BIN1     1 (已修正)
+	 GPIO_ResetBits(GPIOB, GPIO_Pin_12);  // 低电平   PB12 --- BIN2        0 (已修正)
 		
      GPIO_SetBits(GPIOB, GPIO_Pin_0);     //高电平   PB0 --- CIN1       1
 	 GPIO_ResetBits(GPIOB, GPIO_Pin_1);  // 低电平   PB1 --- CIN2       0

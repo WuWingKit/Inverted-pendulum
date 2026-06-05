@@ -239,6 +239,19 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-05 — B电机方向修正 + PID参数调优 + 目标速度降低
+
+- **改动者：** tulip627722
+- **类型：** Bug修复 / 参数调整
+- **改动文件：** HAREWER/MOTO/moto.c, HAREWER/PWM/pwm.c, HAREWER/ENCODER/encoder.c, USER/main.c
+- **内容：**
+  - **B 电机方向修正：** 根据实际接线（BIN1=PB13, BIN2=PB12）修正 moto.c 和 pwm.c 中的引脚配置（交换 PB12/PB13）
+  - **B 编码器读数取反：** encoder.c Read_Encoder case 2 中加负号，匹配硬件编码器接线方向
+  - **PID 参数调优：** Kp 从 1.0 降至 0.5，Ki 从 3.0 降至 0.15，解决电机正反来回震荡问题，加减速更平滑
+  - **目标速度降低：** TargetVelocity 从 500 降至 300，实现低速直行调试
+- **验证：** 四轮同向稳定运转，PWM 平滑调节不再爬升至满速
+
+
 <<<<<<< HEAD
 ### 2026-06-05 — 引脚汇总文档 + 硬件引脚实际映射记录
 
