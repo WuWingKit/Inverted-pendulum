@@ -1,7 +1,7 @@
 #include "encoder.h"
 #include "stm32f10x_gpio.h"
 
-// D电机软件编码器 (PB10=A相, PB11=B相)
+// D电机软件编码器 (PA8=A相, PA4=B相)
 volatile int16_t soft_enc4_cnt = 0;
 static uint8_t soft_enc_last = 0;
 
@@ -12,25 +12,59 @@ void Encoder_Init_Soft(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	// PB10/PB11 浮空输入
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	// PA8/PA4 浮空输入
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_4;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 	// 读取初始状态
 	soft_enc_last = 0;
-	if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_10)) soft_enc_last |= 0x01;
-	if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_11)) soft_enc_last |= 0x02;
+	if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_8)) soft_enc_last |= 0x01;
+	if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_4)) soft_enc_last |= 0x02;
 }
 
-// 主循环中调用，轮询PB10/PB11做正交解码
+
+// D编码器专用1ms定时器轮询（TIM6）
+void Encoder_Timer_Init(void)
+{
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
+	
+	TIM_TimeBaseStructure.TIM_Prescaler = 72 - 1;		// 72MHz / 72 = 1MHz
+	TIM_TimeBaseStructure.TIM_Period = 1000 - 1;		// 1MHz / 1000 = 1kHz (1ms)
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+	
+	TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE);
+	TIM_Cmd(TIM6, ENABLE);
+	
+	NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+}
+
+void TIM6_IRQHandler(void)
+{
+	if(TIM6->SR & 0x0001)
+	{
+		Encoder_Soft_Poll();	// 1ms轮询D编码器
+		TIM6->SR &= ~(1<<0);
+	}
+}
+
+// 主循环中调用，轮询PA8/PA4做正交解码
 void Encoder_Soft_Poll(void)
 {
 	uint8_t cur, idx;
 	cur = 0;
-	if(GPIOB->IDR & GPIO_Pin_10) cur |= 0x01;
-	if(GPIOB->IDR & GPIO_Pin_11) cur |= 0x02;
+	if(GPIOA->IDR & GPIO_Pin_8) cur |= 0x01;
+	if(GPIOA->IDR & GPIO_Pin_4) cur |= 0x02;
 	if(cur != soft_enc_last)
 	{
 		idx = (soft_enc_last << 2) | cur;
@@ -172,7 +206,7 @@ void Encoder_Init_Tim4(void)
   TIM_ICInitTypeDef TIM_ICInitStructure;  
   GPIO_InitTypeDef GPIO_InitStructure;
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);//ʹ�ܶ�ʱ��4��ʱ��
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);//ʹ��PB�˿�ʱ��
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);//ʹ��PB�˿�ʱ��
 	
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;	//�˿�����
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; //��������
