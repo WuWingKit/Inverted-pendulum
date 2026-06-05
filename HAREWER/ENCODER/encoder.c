@@ -34,7 +34,7 @@ void Encoder_Timer_Init(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
 	
 	TIM_TimeBaseStructure.TIM_Prescaler = 72 - 1;		// 72MHz / 72 = 1MHz
-	TIM_TimeBaseStructure.TIM_Period = 1000 - 1;		// 1MHz / 1000 = 1kHz (1ms)
+	TIM_TimeBaseStructure.TIM_Period = 20 - 1;		// 1MHz / 20 = 50kHz (0.02ms)
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
