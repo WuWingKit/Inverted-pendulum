@@ -60,11 +60,11 @@ void Set_PWM(int motor1,int motor2,int motor3,int motor4)
 	 GPIO_ResetBits(GPIOC, GPIO_Pin_14);	 // 低电平}    PC14 --- AIN2     0
 	}
 	if(motor2>0){
-		GPIO_SetBits(GPIOB, GPIO_Pin_13);     //高电平   PB13 --- BIN2       1
-	 GPIO_ResetBits(GPIOB, GPIO_Pin_12);  // 低电平   PB12 --- BIN1       0
+		GPIO_SetBits(GPIOB, GPIO_Pin_12);     //高电平   PB12 --- BIN2       1 (已修正)
+	 GPIO_ResetBits(GPIOB, GPIO_Pin_13);  // 低电平   PB13 --- BIN1       0 (已修正)
 	}else{
-	GPIO_SetBits(GPIOB, GPIO_Pin_12);     //高电平   PB12 --- BIN1     1
-	 GPIO_ResetBits(GPIOB, GPIO_Pin_13);  // 低电平   PB13 --- BIN2        0
+	GPIO_SetBits(GPIOB, GPIO_Pin_13);     //高电平   PB13 --- BIN1     1 (已修正)
+	 GPIO_ResetBits(GPIOB, GPIO_Pin_12);  // 低电平   PB12 --- BIN2        0 (已修正)
 	}
 	if(motor3>0){
 		 GPIO_SetBits(GPIOB, GPIO_Pin_1);     //高电平   PB1 --- CIN2       1
