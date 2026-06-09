@@ -1,5 +1,10 @@
 # 倒立摆 — D24A（霍尔编码器版）
 
+[![Platform](https://img.shields.io/badge/platform-STM32F103RCT6-blue)](https://www.st.com/en/microcontrollers-microprocessors/stm32f103rc.html)
+[![Library](https://img.shields.io/badge/library-STDPeriph%20V3.5.0-green)](https://www.st.com/en/embedded-software/stm32-standard-peripheral-libraries.html)
+[![IDE](https://img.shields.io/badge/IDE-Keil%20MDK-orange)](https://www.keil.com/product/)
+[![Language](https://img.shields.io/badge/language-C-lightgrey)]()
+
 基于 STM32F103RCT6 的四轮电机控制项目，目标是实现倒立摆自平衡控制。当前处于 **PI 速度闭环 + LCD 调试显示** 阶段。
 
 > 📖 [English README](./README.md)
@@ -154,3 +159,5 @@ git push -u origin feature/你的功能
 - **WuWingKit** — 项目负责人
 - **tulip627722** — 电机控制、PID 调参、编码器驱动
 - **hzx** — 硬件引脚映射 & 文档
+- **Lisa-TTT** — 
+- **zzz-rh** — 陀螺仪 / 角速度传感器开发

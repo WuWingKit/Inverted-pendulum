@@ -1,5 +1,10 @@
 # Inverted Pendulum — D24A (Hall Encoder)
 
+[![Platform](https://img.shields.io/badge/platform-STM32F103RCT6-blue)](https://www.st.com/en/microcontrollers-microprocessors/stm32f103rc.html)
+[![Library](https://img.shields.io/badge/library-STDPeriph%20V3.5.0-green)](https://www.st.com/en/embedded-software/stm32-standard-peripheral-libraries.html)
+[![IDE](https://img.shields.io/badge/IDE-Keil%20MDK-orange)](https://www.keil.com/product/)
+[![Language](https://img.shields.io/badge/language-C-lightgrey)]()
+
 A four-wheel motor control project based on STM32F103RCT6, targeting self-balancing inverted pendulum control. Currently at the **PI velocity closed-loop + LCD debugging** stage.
 
 > 📖 [中文文档 (Chinese README)](./README_CN.md)
@@ -154,3 +159,5 @@ git push -u origin feature/your-feature
 - **WuWingKit** — project owner
 - **tulip627722** — motor control, PID tuning, encoder driver
 - **hzx** — hardware pin mapping & documentation
+- **Lisa-TTT** — 
+- **zzz-rh** — gyroscope / angular velocity sensor development
