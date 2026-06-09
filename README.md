@@ -159,5 +159,5 @@ git push -u origin feature/your-feature
 - **WuWingKit** — project owner
 - **tulip627722** — motor control, PID tuning, encoder driver
 - **hzx** — hardware pin mapping & documentation
-- **Lisa-TTT** — 
+- **Lisa-TTT** — gyroscope / angular velocity sensor development
 - **zzz-rh** — gyroscope / angular velocity sensor development

@@ -159,5 +159,5 @@ git push -u origin feature/你的功能
 - **WuWingKit** — 项目负责人
 - **tulip627722** — 电机控制、PID 调参、编码器驱动
 - **hzx** — 硬件引脚映射 & 文档
-- **Lisa-TTT** — 
+- **Lisa-TTT** — 陀螺仪 / 角速度传感器开发
 - **zzz-rh** — 陀螺仪 / 角速度传感器开发
