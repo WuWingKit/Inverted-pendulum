@@ -239,6 +239,21 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-14 — WDD35D4 角位移传感器集成，ADC 测试模式
+
+- **改动者：** WuWingKit
+- **类型：** 新增功能 / 文档更新
+- **改动文件：** `HAREWER/ADC/adc.c`, `HAREWER/FILTER/filter.c`, `HAREWER/FILTER/filter.h`, `USER/main.c`, `引脚汇总.md`, `DEVLOG.md`
+- **内容：**
+  - ADC 初始化增加 PC4 (ADC1_CH14)，用于 WDD35D4 角位移传感器采样
+  - 新增卡尔曼滤波器 + 一阶互补滤波器（从 WHEEL_ADC 项目迁移）
+  - main.c 切换为传感器测试模式：电机全部禁用，仅读取 WDD35D4 角度数据
+  - LCD 显示：原始 ADC 值、转换后角度值、电池电压
+  - 串口输出角度数据 @ 20Hz
+  - WDD35D4 接线：VCC→3.3V, GND→GND, 信号→PC4
+  - 更新引脚汇总文档
+- **验证：** 待硬件测试 — 上电后 LCD 应显示 ADC 原始值和角度，手动旋转传感器时数值变化
+
 ### 2026-06-05 — 添加中英文 README + 修复 DEVLOG 合并冲突 + 标准化开发日志
 
 - **改动者：** WuWingKit
