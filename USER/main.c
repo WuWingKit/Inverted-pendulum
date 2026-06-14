@@ -87,12 +87,13 @@ int main(void)
 	Gpio_Init();
 	uart_init(115200);
 	adc_Init();
-	PWM_Int(7199,0);
-	Encoder_Init_Tim8();
-	Encoder_Init_Tim2();
-	Encoder_Init_Tim3();
-	Encoder_Init_Soft(); // D电机编码器→PA8/PA4软件解码
-	Encoder_Timer_Init(); // 启动1ms定时器轮询D编码器
+	// MOTORS DISABLED - sensor test only
+	// PWM_Int(7199,0);
+	// Encoder_Init_Tim8();
+	// Encoder_Init_Tim2();
+	// Encoder_Init_Tim3();
+	// Encoder_Init_Soft(); // D电机编码器→PA8/PA4软件解码
+	// Encoder_Timer_Init(); // 启动1ms定时器轮询D编码器
 
 	// 初始化LCD
 	LCD_Init();
@@ -108,18 +109,18 @@ int main(void)
 		// 读取WDD35D4角度传感器 (PC4 = ADC1_CH14)
 		angle_adc = Get_adc_Average(ADC_Channel_14, 15);
 
-		// 读取编码器 (D电机用PA8/PA4软件解码)
-		encoder[0] = Read_Encoder(8);
-		encoder[1] = Read_Encoder(2);
-		encoder[2] = Read_Encoder(3);
-		encoder[3] = Read_Encoder(4); // 软件编码器
+		// 读取编码器 (D电机用PA8/PA4软件解码) — encoders disabled, display 0
+		encoder[0] = 0; // Read_Encoder(8);
+		encoder[1] = 0; // Read_Encoder(2);
+		encoder[2] = 0; // Read_Encoder(3);
+		encoder[3] = 0; // Read_Encoder(4); // 软件编码器
 
-		// PI闭环控制
-		pwm[0] = Velocity_A(TargetVelocity, encoder[0]);
-		pwm[1] = Velocity_B(TargetVelocity, encoder[1]);
-		pwm[2] = Velocity_C(TargetVelocity, encoder[2]);
-		pwm[3] = Velocity_D(TargetVelocity, encoder[3]);
-		Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
+		// MOTORS DISABLED — PI control + PWM output commented out
+		pwm[0] = 0; // Velocity_A(TargetVelocity, encoder[0]);
+		pwm[1] = 0; // Velocity_B(TargetVelocity, encoder[1]);
+		pwm[2] = 0; // Velocity_C(TargetVelocity, encoder[2]);
+		pwm[3] = 0; // Velocity_D(TargetVelocity, encoder[3]);
+		// Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
 
 
 		// LCD显示调试信息
