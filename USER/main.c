@@ -95,6 +95,9 @@ int main(void)
 	LCD_Init();
 	LCD_Fill(0, 0, 128, 128, BLACK);
 
+	// 启动提示
+	printf("WDD35D4 Angle Sensor Ready. Send 'z'+CR+LF to zero.\r\n");
+
 
 	while(1)
 	{
@@ -109,7 +112,12 @@ int main(void)
 		// 串口命令: 'z' = 调零 (杆子竖直时发送)
 		if(USART_RX_STA & 0x8000)
 		{
-			if(USART_RX_BUF[0] == 'z' || USART_RX_BUF[0] == 'Z')
+			u8 len = USART_RX_STA & 0x3FFF;
+			// 回显收到的内容，方便调试
+			printf("CMD[%d]:", len);
+			{ u8 i; for(i=0;i<len;i++) printf("%02X ", USART_RX_BUF[i]); }
+			printf("\r\n");
+			if(len >= 1 && (USART_RX_BUF[0] == 'z' || USART_RX_BUF[0] == 'Z'))
 			{
 				zero_offset = angle_adc;
 				printf("Zero set! ADC=%d\r\n", zero_offset);
@@ -135,10 +143,11 @@ int main(void)
 		LCD_Show_Debug(encoder, pwm, vcc);
 
 		// 串口输出
-		printf("T=%d V=%.2f A=%d/%d B=%d/%d C=%d/%d D=%d/%d Ang=%d Off=%d\r\n",
+		printf("T=%d V=%.2f A=%d/%d B=%d/%d C=%d/%d D=%d/%d Ang=%d.%02d ADC=%d Off=%d\r\n",
 			TargetVelocity, vcc,
 			encoder[0], pwm[0], encoder[1], pwm[1],
 			encoder[2], pwm[2], encoder[3], pwm[3],
+			angle_x100/100, (angle_x100<0?-angle_x100:angle_x100)%100,
 			angle_adc, zero_offset);
 
 		delay_ms(50);
