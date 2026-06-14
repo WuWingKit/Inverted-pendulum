@@ -9,93 +9,128 @@
 #include "encoder.h"
 #include "lcd.h"
 #include "lcd_init.h"
-#include "filter.h"     // Kalman + complementary filter
 
  /**************************************************************************
-WHEELTEC D24Ademo - 霍尔编码器四轮电机控制
-LCD实时显示四路电机速度与PWM调试数据
+WHEELTEC D24Ademo - 霍尔编码器四轮电机控制 + WDD35D4角位移传感器
+LCD实时显示四路电机速度、PWM调试数据 + 角度传感器数据
 **************************************************************************/
 
 int TargetVelocity=300;
+float adc_zero_offset = 2048; // WDD35D4 ADC zero-point offset
 
-int   sensor_angle_raw;     // Raw ADC value from WDD35D4
-float adc_zero_offset = 2048; // ADC zero-point offset (calibrate: sensor centered = ~mid ADC range)
-
-// LCD display for WDD35D4 sensor data (all int to avoid float display bugs)
-void LCD_Show_Angle(float vcc, int adc_raw)
+// LCD显示缓冲 (原版 + 角度传感器行)
+void LCD_Show_Debug(int *enc, int *pwm, float vcc, int angle_adc)
 {
 	int angle_int; // angle * 100 for fixed-point display
-	int vcc_int;   // voltage * 100
 
-	angle_int = (int)((adc_raw - adc_zero_offset) * 34000.0 / 4096.0);
-	vcc_int   = (int)(vcc * 100);
+	angle_int = (int)((angle_adc - adc_zero_offset) * 34000.0 / 4096.0);
 
-	// Row 1: Title
-	LCD_ShowString(0,  0, (u8*)"WDD35D4 Test   ", WHITE, BLACK, 16, 0);
+	// 第1行: 目标速度 + 电压
+	LCD_ShowString(0,  0, (u8*)"T:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(16, 0, TargetVelocity, 4, GREEN, BLACK, 16);
+	LCD_ShowString(48, 0, (u8*)" V:", WHITE, BLACK, 16, 0);
+	LCD_ShowFloatNum1(72, 0, vcc, 4, GREEN, BLACK, 16);
 
-	// Row 2: Raw ADC value
-	LCD_ShowString(0,  16, (u8*)"ADC:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(32, 16, adc_raw, 5, YELLOW, BLACK, 16);
+	// 第2行: A电机
+	LCD_ShowString(0,  16, (u8*)"A:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(16, 16, enc[0], 5, YELLOW, BLACK, 16);
+	LCD_ShowString(56, 16, (u8*)" P:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(72, 16, pwm[0], 5, CYAN, BLACK, 16);
 
-	// Row 3: Angle as int * 100 (two decimal places)
-	LCD_ShowString(0,  32, (u8*)"Ang:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(32, 32, angle_int / 100, 4, GREEN, BLACK, 16);
-	LCD_ShowString(64, 32, (u8*)".", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(72, 32, (angle_int < 0 ? -angle_int : angle_int) % 100, 2, GREEN, BLACK, 16);
+	// 第3行: B电机
+	LCD_ShowString(0,  32, (u8*)"B:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(16, 32, enc[1], 5, YELLOW, BLACK, 16);
+	LCD_ShowString(56, 32, (u8*)" P:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(72, 32, pwm[1], 5, CYAN, BLACK, 16);
 
-	// Row 4: Battery voltage as int * 100
-	LCD_ShowString(0,  48, (u8*)"V:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(16, 48, vcc_int / 100, 2, GREEN, BLACK, 16);
-	LCD_ShowString(32, 48, (u8*)".", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(40, 48, vcc_int % 100, 2, GREEN, BLACK, 16);
-	LCD_ShowString(56, 48, (u8*)"V", WHITE, BLACK, 16, 0);
+	// 第4行: C电机
+	LCD_ShowString(0,  48, (u8*)"C:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(16, 48, enc[2], 5, YELLOW, BLACK, 16);
+	LCD_ShowString(56, 48, (u8*)" P:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(72, 48, pwm[2], 5, CYAN, BLACK, 16);
 
-	// Row 5: Sensor status
-	LCD_ShowString(0,  64, (u8*)"Sensor: PC4     ", WHITE, BLACK, 16, 0);
+	// 第5行: D电机
+	LCD_ShowString(0,  64, (u8*)"D:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(16, 64, enc[3], 5, YELLOW, BLACK, 16);
+	LCD_ShowString(56, 64, (u8*)" P:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(72, 64, pwm[3], 5, CYAN, BLACK, 16);
 
-	// Row 6: Motor status
-	LCD_ShowString(0,  80, (u8*)"Motors: OFF     ", RED, BLACK, 16, 0);
+	// 第6行: 控制模式 + Kp/Ki
+	LCD_ShowString(0,  80, (u8*)"Mode:PI Closed ", WHITE, BLACK, 16, 0);
+
+	// 第7行: WDD35D4角度传感器 (替换原来的PID参数行)
+	LCD_ShowString(0,  96, (u8*)"Ang:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(24, 96, angle_int / 100, 4, GREEN, BLACK, 16);
+	LCD_ShowString(56, 96, (u8*)".", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(64, 96, (angle_int < 0 ? -angle_int : angle_int) % 100, 2, GREEN, BLACK, 16);
+	LCD_ShowString(80, 96, (u8*)"deg", WHITE, BLACK, 16, 0);
+
+	// 第8行: ADC原始值 + PID参数
+	LCD_ShowString(0, 112, (u8*)"ADC:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(32, 112, angle_adc, 4, YELLOW, BLACK, 16);
+	LCD_ShowString(64, 112, (u8*)"Kp:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(88, 112, (int)Velcity_Kp, 2, GREEN, BLACK, 16);
+	LCD_ShowString(104, 112, (u8*)" Ki:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(120, 112, (int)Velcity_Ki, 1, GREEN, BLACK, 16);
 }
 
 int main(void)
 {
+	int encoder[4];
+	int pwm[4];
 	u16 adcx;
 	float vcc;
+	int angle_adc;
 
 	SystemInit();
 	delay_init();
 	Gpio_Init();
 	uart_init(115200);
 	adc_Init();
-	// PWM_Int(7199,0);               // DISABLED - motors off for sensor test
-	// Encoder_Init_Tim8();           // DISABLED
-	// Encoder_Init_Tim2();           // DISABLED
-	// Encoder_Init_Tim3();           // DISABLED
-	// Encoder_Init_Soft();           // DISABLED
-	// Encoder_Timer_Init();          // DISABLED
+	PWM_Int(7199,0);
+	Encoder_Init_Tim8();
+	Encoder_Init_Tim2();
+	Encoder_Init_Tim3();
+	Encoder_Init_Soft(); // D电机编码器→PA8/PA4软件解码
+	Encoder_Timer_Init(); // 启动1ms定时器轮询D编码器
 
 	// 初始化LCD
 	LCD_Init();
 	LCD_Fill(0, 0, 128, 128, BLACK);
 
-	// Startup message
-	printf("WDD35D4 Angle Sensor Test\r\n");
-	printf("PC4 = ADC1_CH14\r\n");
 
 	while(1)
 	{
-		// Read battery voltage (PA5)
+		// 读取电池电压
 		adcx = Get_adc_Average(ADC_Channel_5, 10);
 		vcc = (float)adcx * (3.3 * 11 / 4096);
 
-		// Read WDD35D4 angle sensor (PC4 = ADC1_CH14)
-		sensor_angle_raw = Get_adc_Average(ADC_Channel_14, 15);
+		// 读取WDD35D4角度传感器 (PC4 = ADC1_CH14)
+		angle_adc = Get_adc_Average(ADC_Channel_14, 15);
 
-		// LCD: display angle data
-		LCD_Show_Angle(vcc, sensor_angle_raw);
+		// 读取编码器 (D电机用PA8/PA4软件解码)
+		encoder[0] = Read_Encoder(8);
+		encoder[1] = Read_Encoder(2);
+		encoder[2] = Read_Encoder(3);
+		encoder[3] = Read_Encoder(4); // 软件编码器
 
-		// Serial output
-		printf("ADC=%d Vbat=%.2fV\r\n", sensor_angle_raw, vcc);
+		// PI闭环控制
+		pwm[0] = Velocity_A(TargetVelocity, encoder[0]);
+		pwm[1] = Velocity_B(TargetVelocity, encoder[1]);
+		pwm[2] = Velocity_C(TargetVelocity, encoder[2]);
+		pwm[3] = Velocity_D(TargetVelocity, encoder[3]);
+		Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
+
+
+		// LCD显示调试信息
+		LCD_Show_Debug(encoder, pwm, vcc, angle_adc);
+
+		// 串口输出
+		printf("T=%d V=%.2f A=%d/%d B=%d/%d C=%d/%d D=%d/%d ADC=%d\r\n",
+			TargetVelocity, vcc,
+			encoder[0], pwm[0], encoder[1], pwm[1],
+			encoder[2], pwm[2], encoder[3], pwm[3],
+			angle_adc);
 
 		delay_ms(50);
 	}
