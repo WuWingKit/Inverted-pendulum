@@ -16,6 +16,7 @@ LCD实时显示四路电机速度与PWM调试数据
 **************************************************************************/
 
 int TargetVelocity=0; // 测试：先停轮子，确认不白屏
+u16 angle_adc; // WDD35D4角度传感器 ADC原始值
 
 // LCD显示缓冲
 void LCD_Show_Debug(int *enc, int *pwm, float vcc)
@@ -59,8 +60,9 @@ void LCD_Show_Debug(int *enc, int *pwm, float vcc)
 	LCD_ShowString(40, 96, (u8*)" Ki:", WHITE, BLACK, 16, 0);
 	LCD_ShowIntNum(64, 96, (int)Velcity_Ki, 2, GREEN, BLACK, 16);
 
-	// 第8行: 分隔线
-	LCD_ShowString(0, 112, (u8*)"================", GRAY, BLACK, 16, 0);
+	// 第8行: WDD35D4角度传感器 ADC原始值
+	LCD_ShowString(0, 112, (u8*)"Ang:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(32, 112, angle_adc, 4, YELLOW, BLACK, 16);
 }
 
 int main(void)
@@ -92,6 +94,9 @@ int main(void)
 		// 读取电池电压
 		adcx = Get_adc_Average(ADC_Channel_5, 10);
 		vcc = (float)adcx * (3.3 * 11 / 4096);
+
+		// 读取WDD35D4角度传感器 (PC4 = ADC1_CH14)
+		angle_adc = Get_adc(ADC_Channel_14);
 
 		// 读取编码器 (D电机用PA8/PA4软件解码)
 		encoder[0] = Read_Encoder(8);
