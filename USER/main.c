@@ -9,64 +9,56 @@
 #include "encoder.h"
 #include "lcd.h"
 #include "lcd_init.h"
+#include "IOI2C.h"      // Software I2C for MPU6050
+#include "MPU6050.h"    // MPU6050 driver
+#include "filter.h"     // Kalman filter
 
  /**************************************************************************
-WHEELTEC D24Ademo - 霍尔编码器四轮电机控制
-LCD实时显示四路电机速度与PWM调试数据
+WHEELTEC D24Ademo - MPU6050 Gyroscope Testing Mode
+MOTORS DISABLED - angle sensor testing only
 **************************************************************************/
 
-int TargetVelocity=300;
+float MPU_Pitch, MPU_Roll;                // MPU6050 Euler angles
+float MPU_GyroX, MPU_GyroY, MPU_GyroZ;   // Gyro data
+int   mpu_connected = 0;                 // MPU6050 connection status
 
-// LCD显示缓冲
-void LCD_Show_Debug(int *enc, int *pwm, float vcc)
+// LCD display for MPU6050 sensor data
+void LCD_Show_MPU6050(float vcc)
 {
-	// 第1行: 目标速度 + 电压
-	LCD_ShowString(0,  0, (u8*)"T:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(16, 0, TargetVelocity, 4, GREEN, BLACK, 16);
-	LCD_ShowString(48, 0, (u8*)" V:", WHITE, BLACK, 16, 0);
-	LCD_ShowFloatNum1(72, 0, vcc, 4, GREEN, BLACK, 16);
+	// Row 1: Title
+	LCD_ShowString(0,  0, (u8*)"MPU6050 Test   ", WHITE, BLACK, 16, 0);
 
-	// 第2行: A电机
-	LCD_ShowString(0,  16, (u8*)"A:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(16, 16, enc[0], 5, YELLOW, BLACK, 16);
-	LCD_ShowString(56, 16, (u8*)" P:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(72, 16, pwm[0], 5, CYAN, BLACK, 16);
+	// Row 2: Pitch angle
+	LCD_ShowString(0,  16, (u8*)"Pitch:", WHITE, BLACK, 16, 0);
+	LCD_ShowFloatNum1(48, 16, Pitch, 5, GREEN, BLACK, 16);
 
-	// 第3行:                                                                                                                                                                                                                                B电机
-	LCD_ShowString(0,  32, (u8*)"B:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(16, 32, enc[1], 5, YELLOW, BLACK, 16);
-	LCD_ShowString(56, 32, (u8*)" P:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(72, 32, pwm[1], 5, CYAN, BLACK, 16);
+	// Row 3: Roll angle
+	LCD_ShowString(0,  32, (u8*)"Roll: ", WHITE, BLACK, 16, 0);
+	LCD_ShowFloatNum1(48, 32, Roll, 5, GREEN, BLACK, 16);
 
-	// 第4行: C电机
-	LCD_ShowString(0,  48, (u8*)"C:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(16, 48, enc[2], 5, YELLOW, BLACK, 16);
-	LCD_ShowString(56, 48, (u8*)" P:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(72, 48, pwm[2], 5, CYAN, BLACK, 16);
+	// Row 4: Gyro X, Y
+	LCD_ShowString(0,  48, (u8*)"GX:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(24, 48, (int)MPU_GyroX, 5, YELLOW, BLACK, 16);
+	LCD_ShowString(64, 48, (u8*)"GY:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(88, 48, (int)MPU_GyroY, 5, YELLOW, BLACK, 16);
 
-	// 第5行: D电机
-	LCD_ShowString(0,  64, (u8*)"D:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(16, 64, enc[3], 5, YELLOW, BLACK, 16);
-	LCD_ShowString(56, 64, (u8*)" P:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(72, 64, pwm[3], 5, CYAN, BLACK, 16);
+	// Row 5: Gyro Z + Battery voltage
+	LCD_ShowString(0,  64, (u8*)"GZ:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(24, 64, (int)MPU_GyroZ, 5, YELLOW, BLACK, 16);
+	LCD_ShowString(64, 64, (u8*)"V:", WHITE, BLACK, 16, 0);
+	LCD_ShowFloatNum1(80, 64, vcc, 4, GREEN, BLACK, 16);
 
-	// 第6行: 控制模式
-	LCD_ShowString(0,  80, (u8*)"Mode:PI Closed ", WHITE, BLACK, 16, 0);
-
-	// 第7行: PID参数
-	LCD_ShowString(0,  96, (u8*)"Kp:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(24, 96, (int)Velcity_Kp, 2, GREEN, BLACK, 16);
-	LCD_ShowString(40, 96, (u8*)" Ki:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(64, 96, (int)Velcity_Ki, 2, GREEN, BLACK, 16);
-
-	// 第8行: 分隔线
-	LCD_ShowString(0, 112, (u8*)"================", GRAY, BLACK, 16, 0);
+	// Row 6: MPU6050 connection status
+	LCD_ShowString(0,  80, (u8*)"MPU:", WHITE, BLACK, 16, 0);
+	if (mpu_connected) {
+		LCD_ShowString(40, 80, (u8*)"Connected  ", GREEN, BLACK, 16, 0);
+	} else {
+		LCD_ShowString(40, 80, (u8*)"Not Found  ", RED, BLACK, 16, 0);
+	}
 }
 
 int main(void)
 {
-	int encoder[4];
-	int pwm[4];
 	u16 adcx;
 	float vcc;
 
@@ -75,46 +67,66 @@ int main(void)
 	Gpio_Init();
 	uart_init(115200);
 	adc_Init();
-	PWM_Int(7199,0);
-	Encoder_Init_Tim8();
-	Encoder_Init_Tim2();
-	Encoder_Init_Tim3();
-	Encoder_Init_Soft(); // D电机编码器→PA8/PA4软件解码
-	Encoder_Timer_Init(); // 启动1ms定时器轮询D编码器
 
-	// 初始化LCD
+	// ---- MOTORS DISABLED for MPU6050 sensor testing ----
+	// PWM_Int(7199,0);
+	// Encoder_Init_Tim8();
+	// Encoder_Init_Tim2();
+	// Encoder_Init_Tim3();
+	// Encoder_Init_Soft();       // D encoder software decode PA8/PA4
+	// Encoder_Timer_Init();      // 1ms timer polling D encoder
+
+	// Initialize LCD
 	LCD_Init();
 	LCD_Fill(0, 0, 128, 128, BLACK);
 
+	// Initialize I2C and MPU6050
+	IIC_Init();
+	delay_ms(100);
+	MPU6050_initialize();
+	delay_ms(50);
+	if (MPU6050_testConnection()) {
+		printf("MPU6050 connected!\r\n");
+		DMP_Init();  // Initialize DMP for angle calculation
+		printf("DMP initialized!\r\n");
+		mpu_connected = 1;
+	} else {
+		printf("MPU6050 NOT found!\r\n");
+		mpu_connected = 0;
+	}
 
 	while(1)
 	{
-		// 读取电池电压
+		// Read battery voltage
 		adcx = Get_adc_Average(ADC_Channel_5, 10);
 		vcc = (float)adcx * (3.3 * 11 / 4096);
 
-		// 读取编码器 (D电机用PA8/PA4软件解码)
-		encoder[0] = Read_Encoder(8);
-		encoder[1] = Read_Encoder(2);
-		encoder[2] = Read_Encoder(3);
-		encoder[3] = Read_Encoder(4); // 软件编码器
+		// Read MPU6050 DMP data
+		if (mpu_connected) {
+			Read_DMP();
+			MPU_Pitch = Pitch;
+			MPU_Roll  = Roll;
+			MPU_GyroX = gyro[0];
+			MPU_GyroY = gyro[1];
+			MPU_GyroZ = gyro[2];
+		}
 
-		// PI闭环控制
-		pwm[0] = Velocity_A(TargetVelocity, encoder[0]);
-		pwm[1] = Velocity_B(TargetVelocity, encoder[1]);
-		pwm[2] = Velocity_C(TargetVelocity, encoder[2]);
-		pwm[3] = Velocity_D(TargetVelocity, encoder[3]);
-		Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
+		// ---- MOTORS DISABLED - encoder / PI / PWM commented out ----
+		// encoder[0] = Read_Encoder(8);
+		// encoder[1] = Read_Encoder(2);
+		// encoder[2] = Read_Encoder(3);
+		// encoder[3] = Read_Encoder(4);
+		// pwm[0] = Velocity_A(TargetVelocity, encoder[0]);
+		// pwm[1] = Velocity_B(TargetVelocity, encoder[1]);
+		// pwm[2] = Velocity_C(TargetVelocity, encoder[2]);
+		// pwm[3] = Velocity_D(TargetVelocity, encoder[3]);
+		// Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
 
+		// LCD: display MPU6050 sensor data
+		LCD_Show_MPU6050(vcc);
 
-		// LCD显示调试信息
-		LCD_Show_Debug(encoder, pwm, vcc);
-
-		// 串口输出
-		printf("T=%d V=%.2f A=%d/%d B=%d/%d C=%d/%d D=%d/%d\r\n",
-			TargetVelocity, vcc,
-			encoder[0], pwm[0], encoder[1], pwm[1],
-			encoder[2], pwm[2], encoder[3], pwm[3]);
+		// Serial output: MPU6050 angle data
+		printf("Pitch=%.2f Roll=%.2f V=%.2f\r\n", Pitch, Roll, vcc);
 
 		delay_ms(50);
 	}

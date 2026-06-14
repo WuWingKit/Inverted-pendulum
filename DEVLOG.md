@@ -239,6 +239,21 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-14 — MPU6050 陀螺仪驱动集成，传感器测试模式
+
+- **改动者：** WuWingKit
+- **类型：** 新增功能 / 文档更新
+- **改动文件：** `HAREWER/IIC/IOI2C.c`, `HAREWER/IIC/IOI2C.h`, `HAREWER/MPU6050/MPU6050.c`, `HAREWER/MPU6050/MPU6050.h`, `HAREWER/MPU6050/inv_mpu.c`, `HAREWER/MPU6050/inv_mpu.h`, `HAREWER/MPU6050/inv_mpu_dmp_motion_driver.c`, `HAREWER/MPU6050/inv_mpu_dmp_motion_driver.h`, `HAREWER/MPU6050/dmpKey.h`, `HAREWER/MPU6050/dmpmap.h`, `HAREWER/FILTER/filter.c`, `HAREWER/FILTER/filter.h`, `USER/main.c`, `引脚汇总.md`, `DEVLOG.md`
+- **内容：**
+  - 从 WHEEL_ADC 项目迁移 MPU6050 陀螺仪驱动（含 DMP 运动处理器）
+  - 新增软件 I2C 驱动（PB10=SCL, PB11=SDA），避免与 LCD 引脚冲突
+  - 新增卡尔曼滤波器 + 一阶互补滤波器
+  - main.c 切换为传感器测试模式：仅读取 MPU6050 角度数据并在 LCD 显示，电机不启动
+  - LCD 显示 Pitch/Roll 角度、陀螺仪数据、电池电压
+  - 更新引脚汇总文档，添加 I2C/MPU6050 引脚映射
+  - I2C 地址：MPU6050 AD0 接 GND，7位地址 0x68
+- **验证：** 待硬件测试 — 上电后 LCD 应显示 MPU6050 角度数据，串口输出 Pitch/Roll 值
+
 ### 2026-06-05 — B电机方向修正 + PID参数调优 + 目标速度降低
 
 - **改动者：** tulip627722
