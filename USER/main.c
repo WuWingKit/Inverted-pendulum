@@ -11,12 +11,11 @@
 #include "lcd_init.h"
 
  /**************************************************************************
-WHEELTEC D24Ademo - 霍尔编码器四轮电机控制 + WDD35D4角位移传感器
+WHEELTEC D24Ademo - 霍尔编码器四轮电机控制
 LCD实时显示四路电机速度与PWM调试数据
 **************************************************************************/
 
-int TargetVelocity=300;
-int angle_adc; // WDD35D4 angle sensor raw ADC value
+int TargetVelocity=0; // 测试：先停轮子，确认不白屏
 
 // LCD显示缓冲
 void LCD_Show_Debug(int *enc, int *pwm, float vcc)
@@ -33,7 +32,7 @@ void LCD_Show_Debug(int *enc, int *pwm, float vcc)
 	LCD_ShowString(56, 16, (u8*)" P:", WHITE, BLACK, 16, 0);
 	LCD_ShowIntNum(72, 16, pwm[0], 5, CYAN, BLACK, 16);
 
-	// 第3行: B电机
+	// 第3行:                                                                                                                                                                                                                                B电机
 	LCD_ShowString(0,  32, (u8*)"B:", WHITE, BLACK, 16, 0);
 	LCD_ShowIntNum(16, 32, enc[1], 5, YELLOW, BLACK, 16);
 	LCD_ShowString(56, 32, (u8*)" P:", WHITE, BLACK, 16, 0);
@@ -54,15 +53,14 @@ void LCD_Show_Debug(int *enc, int *pwm, float vcc)
 	// 第6行: 控制模式
 	LCD_ShowString(0,  80, (u8*)"Mode:PI Closed ", WHITE, BLACK, 16, 0);
 
-	// 第7行: WDD35D4角度传感器 ADC
-	LCD_ShowString(0,  96, (u8*)"Ang:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(24, 96, angle_adc, 4, YELLOW, BLACK, 16);
+	// 第7行: PID参数
+	LCD_ShowString(0,  96, (u8*)"Kp:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(24, 96, (int)Velcity_Kp, 2, GREEN, BLACK, 16);
+	LCD_ShowString(40, 96, (u8*)" Ki:", WHITE, BLACK, 16, 0);
+	LCD_ShowIntNum(64, 96, (int)Velcity_Ki, 2, GREEN, BLACK, 16);
 
-	// 第8行: PID参数
-	LCD_ShowString(0, 112, (u8*)"Kp:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(24, 112, (int)Velcity_Kp, 2, GREEN, BLACK, 16);
-	LCD_ShowString(40, 112, (u8*)" Ki:", WHITE, BLACK, 16, 0);
-	LCD_ShowIntNum(64, 112, (int)Velcity_Ki, 2, GREEN, BLACK, 16);
+	// 第8行: 分隔线
+	LCD_ShowString(0, 112, (u8*)"================", GRAY, BLACK, 16, 0);
 }
 
 int main(void)
@@ -95,9 +93,6 @@ int main(void)
 		adcx = Get_adc_Average(ADC_Channel_5, 10);
 		vcc = (float)adcx * (3.3 * 11 / 4096);
 
-		// 读取WDD35D4角度传感器 (PC4 = ADC1_CH14)
-		angle_adc = Get_adc_Average(ADC_Channel_14, 15);
-
 		// 读取编码器 (D电机用PA8/PA4软件解码)
 		encoder[0] = Read_Encoder(8);
 		encoder[1] = Read_Encoder(2);
@@ -116,11 +111,10 @@ int main(void)
 		LCD_Show_Debug(encoder, pwm, vcc);
 
 		// 串口输出
-		printf("T=%d V=%.2f A=%d/%d B=%d/%d C=%d/%d D=%d/%d ADC=%d\r\n",
+		printf("T=%d V=%.2f A=%d/%d B=%d/%d C=%d/%d D=%d/%d\r\n",
 			TargetVelocity, vcc,
 			encoder[0], pwm[0], encoder[1], pwm[1],
-			encoder[2], pwm[2], encoder[3], pwm[3],
-			angle_adc);
+			encoder[2], pwm[2], encoder[3], pwm[3]);
 
 		delay_ms(50);
 	}
