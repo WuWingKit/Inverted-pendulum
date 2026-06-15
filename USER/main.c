@@ -10,6 +10,7 @@
 #include "lcd.h"
 #include "lcd_init.h"
 
+#define ADC_ZERO  1770   // ADC BALANCE
  /**************************************************************************
 WHEELTEC D24Ademo - 霍尔编码器四轮电机控制
 LCD实时显示四路电机速度与PWM调试数据
