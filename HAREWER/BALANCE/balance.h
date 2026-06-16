@@ -4,7 +4,11 @@
 #include "stm32f10x.h"
 
 #define BALANCE_LOOP_MS        5
+<<<<<<< HEAD
 #define BALANCE_PWM_LIMIT      4200
+=======
+#define BALANCE_PWM_LIMIT      3800
+>>>>>>> 6fd8f5e (?????p=6.7, Kd=10.0, Speed_Kp=0.25, PWM_LIMIT=3800)
 #define BALANCE_SAFE_ANGLE_X100 2500
 #define BALANCE_OUTPUT_SIGN    1
 

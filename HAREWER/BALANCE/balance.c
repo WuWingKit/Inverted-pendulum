@@ -1,8 +1,14 @@
 #include "balance.h"
 
+<<<<<<< HEAD
 float Balance_Angle_Kp = 3.4f;
 float Balance_Angle_Kd = 13.0f;
 float Balance_Speed_Kp = 0.55f;
+=======
+float Balance_Angle_Kp = 5.8f;
+float Balance_Angle_Kd = 10.0f;
+float Balance_Speed_Kp = 0.25f;
+>>>>>>> 6fd8f5e (?????p=6.7, Kd=10.0, Speed_Kp=0.25, PWM_LIMIT=3800)
 float Balance_Position_Kp = 0.002f;
 
 u8 Balance_Enable = 0;
