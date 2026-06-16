@@ -9,6 +9,7 @@
 #include "encoder.h"
 #include "lcd.h"
 #include "lcd_init.h"
+#include "key.h"
 
  /**************************************************************************
 WHEELTEC D24Ademo - 霍尔编码器四轮电机控制
@@ -78,10 +79,12 @@ int main(void)
 	int pwm[4];
 	u16 adcx;
 	float vcc;
+	u8 key;
 
 	SystemInit();
 	delay_init();
 	Gpio_Init();
+	KEY_Init();
 	uart_init(115200);
 	adc_Init();
 	PWM_Int(7199,0);
@@ -96,7 +99,7 @@ int main(void)
 	LCD_Fill(0, 0, 128, 128, BLACK);
 
 	// 启动提示
-	printf("WDD35D4 Angle Sensor Ready. Send 'z'+CR+LF to zero.\r\n");
+	printf("WDD35D4 Angle Sensor Ready. Press KEY2 or send 'z'+CR+LF to zero.\r\n");
 
 
 	while(1)
@@ -107,6 +110,12 @@ int main(void)
 
 		// 读取WDD35D4角度传感器 (PC4 = ADC1_CH14)
 		angle_adc = Get_adc(ADC_Channel_14);
+		key = KEY_Scan();
+		if(key == KEY_ZERO_PRESS)
+		{
+			zero_offset = angle_adc;
+			printf("Zero set by KEY2! ADC=%d\r\n", zero_offset);
+		}
 		angle_x100 = ((int)angle_adc - zero_offset) * 34000 / 4096; // 角度*100
 
 		// 串口命令: 'z' = 调零 (杆子竖直时发送)

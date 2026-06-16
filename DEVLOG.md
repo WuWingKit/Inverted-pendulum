@@ -239,6 +239,19 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-16 — 增加 WDD35D4 按键调零
+
+- **改动者：** Codex
+- **类型：** 新增功能 / 调试优化
+- **改动文件：** `USER/main.c`, `USER/key.c`, `USER/key.h`, `USER/Tb6612demo.uvprojx`, `DEVLOG.md`
+- **内容：**
+  - 参考 `E:\WorkSpace\倒立摆\rfid` 工程的按键实现，新增 `USER/key.c` / `USER/key.h`
+  - 避开已被 TIM5_CH1 电机 PWM 占用的 PA0，仅初始化 PC8/PC9 按键输入
+  - 将 KEY2(PC8，低电平按下) 作为 WDD35D4 角位移传感器调零键，按下后把当前 `angle_adc` 写入 `zero_offset`
+  - 保留串口 `z` 调零作为备用路径，同时启动提示增加 KEY2 调零说明
+  - 将 `key.c` 加入 Keil 工程 USER 分组，确保工程编译包含按键驱动
+- **验证：** 已完成代码静态检查；需在硬件上烧录后竖直放置杆体，按 KEY2，观察 LCD `Ang` 接近 0 且串口输出 `Zero set by KEY2!`
+
 ### 2026-06-14 — WDD35D4 角位移传感器集成，ADC 测试模式
 
 - **改动者：** WuWingKit
