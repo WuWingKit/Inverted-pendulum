@@ -241,7 +241,7 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ### 2026-06-16 — 降低倒立摆控制输出强度
 
-- **改动者：** Codex
+- **改动者：** WuWingKit
 - **类型：** 参数调整 / 硬件调试
 - **改动文件：** `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
 - **内容：**
@@ -252,7 +252,7 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ### 2026-06-16 — 翻转倒立摆平衡输出方向
 
-- **改动者：** Codex
+- **改动者：** WuWingKit
 - **类型：** 参数调整 / 硬件调试
 - **改动文件：** `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
 - **内容：**
@@ -262,7 +262,7 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ### 2026-06-16 — 修复串口接收状态变量编译错误
 
-- **改动者：** Codex
+- **改动者：** WuWingKit
 - **类型：** Bug 修复
 - **改动文件：** `SYSTEM/usart/usart.c`, `SYSTEM/usart/usart.h`, `DEVLOG.md`
 - **内容：**
@@ -272,7 +272,7 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ### 2026-06-16 — 新增四轮小车倒立摆平衡控制基础框架
 
-- **改动者：** Codex
+- **改动者：** WuWingKit
 - **类型：** 新增功能 / 控制算法移植
 - **改动文件：** `USER/main.c`, `USER/key.c`, `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `USER/Tb6612demo.uvprojx`, `DEVLOG.md`
 - **内容：**
@@ -287,7 +287,7 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ### 2026-06-16 — 增加 WDD35D4 按键调零
 
-- **改动者：** Codex
+- **改动者：** WuWingKit
 - **类型：** 新增功能 / 调试优化
 - **改动文件：** `USER/main.c`, `USER/key.c`, `USER/key.h`, `USER/Tb6612demo.uvprojx`, `DEVLOG.md`
 - **内容：**
