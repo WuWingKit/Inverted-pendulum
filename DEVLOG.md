@@ -239,6 +239,16 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-16 — 修复串口接收状态变量编译错误
+
+- **改动者：** Codex
+- **类型：** Bug 修复
+- **改动文件：** `SYSTEM/usart/usart.c`, `SYSTEM/usart/usart.h`, `DEVLOG.md`
+- **内容：**
+  - 将 `USART_RX_STA` 的声明和定义统一为 `volatile u16`
+  - 修复 ARMCC 报错 `declaration is incompatible with "volatile u16 USART_RX_STA"`
+- **验证：** 已根据 Keil 报错定位并完成静态检查；需重新 Rebuild 确认工程通过编译
+
 ### 2026-06-16 — 新增四轮小车倒立摆平衡控制基础框架
 
 - **改动者：** Codex
