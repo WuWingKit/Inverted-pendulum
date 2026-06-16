@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\USER;..\STM32F10x_FWLIB\inc;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\HAREWER\MOTO;..\HAREWER\PWM;..\HAREWER\GPIO;..\HAREWER\ADC;..\HAREWER\ENCODER;..\HAREWER\LCD</IncludePath>
+              <IncludePath>..\CORE;..\USER;..\STM32F10x_FWLIB\inc;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\HAREWER\MOTO;..\HAREWER\PWM;..\HAREWER\GPIO;..\HAREWER\ADC;..\HAREWER\ENCODER;..\HAREWER\LCD;..\HAREWER\FILTER</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -398,6 +398,11 @@
               <FileName>system_stm32f10x.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\system_stm32f10x.c</FilePath>
+            </File>
+            <File>
+              <FileName>key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\key.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -593,6 +598,11 @@
               <FileName>lcd_init.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HAREWER\LCD\lcd_init.c</FilePath>
+            </File>
+            <File>
+              <FileName>filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HAREWER\FILTER\filter.c</FilePath>
             </File>
           </Files>
         </Group>
