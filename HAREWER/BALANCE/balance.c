@@ -1,7 +1,7 @@
 #include "balance.h"
 
-float Balance_Angle_Kp = 1.8f;
-float Balance_Angle_Kd = 7.0f;
+float Balance_Angle_Kp = 2.4f;
+float Balance_Angle_Kd = 9.5f;
 float Balance_Speed_Kp = 0.55f;
 float Balance_Position_Kp = 0.002f;
 
