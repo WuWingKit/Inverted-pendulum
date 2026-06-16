@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\USER;..\STM32F10x_FWLIB\inc;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\HAREWER\MOTO;..\HAREWER\PWM;..\HAREWER\GPIO;..\HAREWER\ADC;..\HAREWER\ENCODER;..\HAREWER\LCD;..\HAREWER\FILTER</IncludePath>
+              <IncludePath>..\CORE;..\USER;..\STM32F10x_FWLIB\inc;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\HAREWER\MOTO;..\HAREWER\PWM;..\HAREWER\GPIO;..\HAREWER\ADC;..\HAREWER\ENCODER;..\HAREWER\LCD;..\HAREWER\FILTER;..\HAREWER\BALANCE</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -603,6 +603,11 @@
               <FileName>filter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HAREWER\FILTER\filter.c</FilePath>
+            </File>
+            <File>
+              <FileName>balance.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HAREWER\BALANCE\balance.c</FilePath>
             </File>
           </Files>
         </Group>
