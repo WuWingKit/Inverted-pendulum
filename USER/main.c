@@ -120,8 +120,8 @@ int main(void)
 	int pwm[4] = {0, 0, 0, 0};
 	u16 adcx;
 	float vcc = 0;
-	u8 lcd_tick = 0;
-	u8 vbat_tick = 0;
+	u16 lcd_tick = 0;
+	u16 vbat_tick = 0;
 	int balance_pwm;
 
 	SystemInit();
@@ -162,14 +162,14 @@ int main(void)
 		pwm[3] = balance_pwm;
 		Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
 
-		if(++vbat_tick >= 20)
+		if(++vbat_tick >= 50)
 		{
 			vbat_tick = 0;
 			adcx = Get_adc(ADC_Channel_5);
 			vcc = (float)adcx * (3.3 * 11 / 4096);
 		}
 
-		if(++lcd_tick >= 10)
+		if(++lcd_tick >= 50)
 		{
 			lcd_tick = 0;
 			LCD_Show_Debug(encoder, pwm, vcc);
