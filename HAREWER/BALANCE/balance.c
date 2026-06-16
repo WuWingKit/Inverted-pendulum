@@ -1,9 +1,9 @@
 #include "balance.h"
 
 float Balance_Angle_Kp = 4.0f;
-float Balance_Soft_Angle_Kp = 2.2f;
+float Balance_Soft_Angle_Kp = 2.8f;
 float Balance_Angle_Kd = 32.0f;
-float Balance_Soft_Angle_Kd = 20.0f;
+float Balance_Soft_Angle_Kd = 24.0f;
 float Balance_Rescue_Kp = 2.2f;
 float Balance_Speed_Kp = 1.20f;
 float Balance_Rescue_Speed_Kp = 0.25f;
@@ -121,6 +121,10 @@ int Balance_Update(int angle_x100, int *encoder)
 
 	Balance_Output = BALANCE_OUTPUT_SIGN * (int)(angle_pwm + rescue_pwm - speed_pwm - position_pwm);
 	Balance_Output = Balance_Limit(Balance_Output, BALANCE_PWM_LIMIT);
+	if(abs_angle > BALANCE_START_ANGLE_X100 && Balance_Output != 0 && Balance_Abs(Balance_Output) < BALANCE_MIN_OUTPUT)
+	{
+		Balance_Output = BALANCE_MIN_OUTPUT * Balance_Sign(Balance_Output);
+	}
 
 	return Balance_Output;
 }
