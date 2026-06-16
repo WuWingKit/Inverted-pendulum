@@ -1,7 +1,9 @@
 #include "balance.h"
 
 float Balance_Angle_Kp = 4.0f;
-float Balance_Angle_Kd = 36.0f;
+float Balance_Soft_Angle_Kp = 2.2f;
+float Balance_Angle_Kd = 32.0f;
+float Balance_Soft_Angle_Kd = 20.0f;
 float Balance_Rescue_Kp = 1.6f;
 float Balance_Speed_Kp = 1.10f;
 float Balance_Position_Kp = 0.001f;
@@ -61,6 +63,8 @@ int Balance_Update(int angle_x100, int *encoder)
 	float rescue_pwm;
 	float speed_pwm;
 	float position_pwm;
+	float angle_kp;
+	float angle_kd;
 	int abs_angle;
 
 	if(!Balance_Enable)
@@ -85,11 +89,22 @@ int Balance_Update(int angle_x100, int *encoder)
 	last_angle_x100 = angle_x100;
 
 	abs_angle = Balance_Abs(angle_x100);
-	angle_pwm = Balance_Angle_Kp * angle_x100 + Balance_Angle_Kd * Balance_Angle_Rate_X100;
-	rescue_pwm = 0;
-	if(abs_angle > 800)
+	if(abs_angle < BALANCE_SOFT_ANGLE_X100)
 	{
-		rescue_pwm = Balance_Rescue_Kp * (abs_angle - 800) * Balance_Sign(angle_x100);
+		angle_kp = Balance_Soft_Angle_Kp;
+		angle_kd = Balance_Soft_Angle_Kd;
+	}
+	else
+	{
+		angle_kp = Balance_Angle_Kp;
+		angle_kd = Balance_Angle_Kd;
+	}
+
+	angle_pwm = angle_kp * angle_x100 + angle_kd * Balance_Angle_Rate_X100;
+	rescue_pwm = 0;
+	if(abs_angle > BALANCE_RESCUE_ANGLE_X100)
+	{
+		rescue_pwm = Balance_Rescue_Kp * (abs_angle - BALANCE_RESCUE_ANGLE_X100) * Balance_Sign(angle_x100);
 	}
 	speed_pwm = Balance_Speed_Kp * Balance_Speed_Filter;
 	position_pwm = Balance_Position_Kp * Balance_Position;
