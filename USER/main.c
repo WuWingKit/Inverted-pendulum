@@ -22,6 +22,13 @@ u16 angle_adc;
 int zero_offset = 2048;
 int angle_x100;
 
+static void Calibrate_Angle_Zero(void)
+{
+	zero_offset = Get_adc_Average(ADC_Channel_14, 50);
+	angle_adc = zero_offset;
+	angle_x100 = 0;
+}
+
 static void LCD_Show_Debug(int *enc, int *pwm, float vcc)
 {
 	LCD_ShowString(0,  0, (u8*)"T:", WHITE, BLACK, 16, 0);
@@ -72,13 +79,13 @@ static void Handle_Key(u8 key)
 {
 	if(key == KEY_ZERO_PRESS)
 	{
-		zero_offset = angle_adc;
-		angle_x100 = 0;
+		Calibrate_Angle_Zero();
 		Balance_Start();
 		printf("Zero set by KEY2, balance start! ADC=%d\r\n", zero_offset);
 	}
 	else if(key == KEY_AUX_PRESS)
 	{
+		Balance_Stop_Reason = BALANCE_STOP_USER;
 		Balance_Stop();
 		Set_PWM(0, 0, 0, 0);
 		printf("Balance stopped by KEY3.\r\n");
@@ -92,13 +99,13 @@ static void Handle_Serial_Command(void)
 		u8 len = USART_RX_STA & 0x3FFF;
 		if(len >= 1 && (USART_RX_BUF[0] == 'z' || USART_RX_BUF[0] == 'Z'))
 		{
-			zero_offset = angle_adc;
-			angle_x100 = 0;
+			Calibrate_Angle_Zero();
 			Balance_Start();
 			printf("Zero set by serial, balance start! ADC=%d\r\n", zero_offset);
 		}
 		else if(len >= 1 && (USART_RX_BUF[0] == 's' || USART_RX_BUF[0] == 'S'))
 		{
+			Balance_Stop_Reason = BALANCE_STOP_USER;
 			Balance_Stop();
 			Set_PWM(0, 0, 0, 0);
 			printf("Balance stopped by serial.\r\n");
@@ -113,8 +120,8 @@ int main(void)
 	int pwm[4] = {0, 0, 0, 0};
 	u16 adcx;
 	float vcc = 0;
-	u8 lcd_tick = 0;
-	u8 vbat_tick = 0;
+	u16 lcd_tick = 0;
+	u16 vbat_tick = 0;
 	int balance_pwm;
 
 	SystemInit();
@@ -155,23 +162,23 @@ int main(void)
 		pwm[3] = balance_pwm;
 		Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
 
-		if(++vbat_tick >= 20)
+		if(++vbat_tick >= 50)
 		{
 			vbat_tick = 0;
 			adcx = Get_adc(ADC_Channel_5);
 			vcc = (float)adcx * (3.3 * 11 / 4096);
 		}
 
-		if(++lcd_tick >= 10)
+		if(++lcd_tick >= 50)
 		{
 			lcd_tick = 0;
 			LCD_Show_Debug(encoder, pwm, vcc);
-			printf("BAL=%d V=%.2f A=%d B=%d C=%d D=%d PWM=%d Ang=%d.%02d Rate=%d ADC=%d Off=%d\r\n",
-				Balance_Enable, vcc,
+			printf("BAL=%d Stop=%d V=%.2f A=%d B=%d C=%d D=%d PWM=%d Ang=%d.%02d Rate=%d SF=%d ADC=%d Off=%d\r\n",
+				Balance_Enable, Balance_Stop_Reason, vcc,
 				encoder[0], encoder[1], encoder[2], encoder[3],
 				balance_pwm,
 				angle_x100 / 100, (angle_x100 < 0 ? -angle_x100 : angle_x100) % 100,
-				Balance_Angle_Rate_X100, angle_adc, zero_offset);
+				Balance_Angle_Rate_X100, Balance_Speed_Filter, angle_adc, zero_offset);
 		}
 
 		delay_ms(BALANCE_LOOP_MS);
