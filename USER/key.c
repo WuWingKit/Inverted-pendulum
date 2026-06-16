@@ -17,24 +17,29 @@ void KEY_Init(void)
 
 u8 KEY_Scan(void)
 {
-	if(KEY2_VAL == 0)
+	static u8 key2_state = 1;
+	static u8 key3_state = 1;
+	static u8 key2_count = 0;
+	static u8 key3_count = 0;
+	u8 key2_now = KEY2_VAL;
+	u8 key3_now = KEY3_VAL;
+
+	if(key2_now == key2_state)
+		key2_count = 0;
+	else if(++key2_count >= 3)
 	{
-		delay_ms(20);
-		if(KEY2_VAL == 0)
-		{
-			while(KEY2_VAL == 0);
-			return KEY_ZERO_PRESS;
-		}
+		key2_state = key2_now;
+		key2_count = 0;
+		if(key2_state == 0) return KEY_ZERO_PRESS;
 	}
 
-	if(KEY3_VAL == 0)
+	if(key3_now == key3_state)
+		key3_count = 0;
+	else if(++key3_count >= 3)
 	{
-		delay_ms(20);
-		if(KEY3_VAL == 0)
-		{
-			while(KEY3_VAL == 0);
-			return KEY_AUX_PRESS;
-		}
+		key3_state = key3_now;
+		key3_count = 0;
+		if(key3_state == 0) return KEY_AUX_PRESS;
 	}
 
 	return KEY_NONE;
