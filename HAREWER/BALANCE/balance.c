@@ -9,8 +9,8 @@ float Balance_Speed_Kp = 1.10f;
 float Balance_Rescue_Speed_Kp = 0.30f;
 float Balance_Fall_Rate_Kd = 58.0f;
 float Balance_Fall_Speed_Kp = 0.04f;
-float Balance_Return_Speed_Kp = 1.55f;
-float Balance_Carry_Speed_Kp = 0.22f;
+float Balance_Return_Speed_Kp = 1.25f;
+float Balance_Carry_Speed_Kp = 0.16f;
 float Balance_Position_Kp = 0.001f;
 
 u8 Balance_Enable = 0;
@@ -84,7 +84,6 @@ int Balance_Update(int angle_x100, int *encoder)
 	int returning_home;
 	int min_output;
 	int fall_min_output;
-	int return_min_output;
 	int raw_angle_x100;
 	int raw_angle_rate_x100;
 	int abs_angle;
@@ -211,19 +210,5 @@ int Balance_Update(int angle_x100, int *encoder)
 			Balance_Output = fall_min_output * Balance_Sign(Balance_Output);
 		}
 	}
-	if(returning_home && abs_angle > BALANCE_CENTER_CAPTURE_X100 && Balance_Output != 0 &&
-	   Balance_Abs(Balance_Output) < BALANCE_RETURN_MIN_OUTPUT)
-	{
-		return_min_output = BALANCE_RETURN_MIN_OUTPUT;
-		if(abs_angle < BALANCE_FALL_START_X100)
-		{
-			return_min_output = BALANCE_MIN_OUTPUT +
-				(BALANCE_RETURN_MIN_OUTPUT - BALANCE_MIN_OUTPUT) *
-				(abs_angle - BALANCE_CENTER_CAPTURE_X100) /
-				(BALANCE_FALL_START_X100 - BALANCE_CENTER_CAPTURE_X100);
-		}
-		Balance_Output = return_min_output * Balance_Sign(angle_x100);
-	}
-
 	return Balance_Output;
 }

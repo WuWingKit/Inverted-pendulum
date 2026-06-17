@@ -4,7 +4,8 @@
 
 #define MOTOR_PWM_MAX       7199
 #define MOTOR_PWM_DEADZONE  1100
-#define MOTOR_PWM_CMD_FLOOR 80
+#define MOTOR_PWM_CMD_FLOOR 120
+#define MOTOR_PWM_DEADZONE_RAMP 900
 
 /**************************************************************************
 函数功能：pwm初始化
@@ -57,12 +58,21 @@ static int Apply_PWM_Deadzone(int value)
 {
 	int pwm;
 	int sign;
+	int command;
+	int boost;
 
 	if(value == 0) return 0;
-	if(myabs(value) < MOTOR_PWM_CMD_FLOOR) return 0;
+	command = myabs(value);
+	if(command < MOTOR_PWM_CMD_FLOOR) return 0;
 
 	sign = value > 0 ? 1 : -1;
-	pwm = myabs(value) + MOTOR_PWM_DEADZONE;
+	boost = MOTOR_PWM_DEADZONE;
+	if(command < MOTOR_PWM_DEADZONE_RAMP)
+	{
+		boost = MOTOR_PWM_DEADZONE * (command - MOTOR_PWM_CMD_FLOOR) /
+			(MOTOR_PWM_DEADZONE_RAMP - MOTOR_PWM_CMD_FLOOR);
+	}
+	pwm = command + boost;
 	if(pwm > MOTOR_PWM_MAX) pwm = MOTOR_PWM_MAX;
 
 	return sign * pwm;
