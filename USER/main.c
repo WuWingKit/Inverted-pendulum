@@ -17,7 +17,7 @@ KEY2: zero WDD35D4 angle sensor and start balance.
 KEY3: stop balance output.
 **************************************************************************/
 
-#define STARTUP_DIAGNOSTIC_MODE 1
+#define STARTUP_DIAGNOSTIC_MODE 0
 
 int TargetVelocity = 0;
 u16 angle_adc;

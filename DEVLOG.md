@@ -239,6 +239,18 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 关闭启动诊断模式并恢复正常运行
+
+- **改动者：** WuWingKit
+- **类型：** 调试收尾 / 功能恢复
+- **改动文件：** `USER/main.c`, `DEVLOG.md`
+- **内容：**
+  - 确认 BOOT0/BOOT1 方式可重新烧录后，板子已能从 Flash 启动并显示 LCD 调试页面。
+  - LCD 显示 `T/A/B/C/D` 等字段说明程序已经进入主循环，启动诊断信息会被周期性调试页面覆盖，属于正常现象。
+  - 将 `STARTUP_DIAGNOSTIC_MODE` 从 `1` 改为 `0`，恢复执行 `Encoder_Timer_Init()`，使 D 轮软件编码器重新参与运行。
+  - 保留 `GPIO_Remap_SWJ_JTAGDisable` 修复，避免后续程序运行后再次关闭 SWD 下载调试口。
+- **验证：** 待重新编译烧录。烧录后 `BOOT0` 接回 GND 并重新上电，LCD 应显示正常调试页面，后续 Keil/ST-Link 应仍可通过 SWD 连接。
+
 ### 2026-06-17 — 保留 SWD 调试口避免程序运行后失联
 
 - **改动者：** WuWingKit
