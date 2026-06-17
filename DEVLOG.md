@@ -239,6 +239,18 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 保留 SWD 调试口避免程序运行后失联
+
+- **改动者：** WuWingKit
+- **类型：** Bug 修复 / 下载恢复
+- **改动文件：** `HAREWER/ENCODER/encoder.c`, `DEVLOG.md`
+- **内容：**
+  - 排查“刷入程序后板子像卡在 BOOT0、BOOT0 拉低也不运行、后续烧录无效”的问题，发现 `Encoder_Init_Tim2()` 中使用了 `GPIO_Remap_SWJ_Disable`。
+  - `GPIO_Remap_SWJ_Disable` 会同时关闭 JTAG 和 SWD，程序一旦运行到 TIM2 编码器初始化，PA13/PA14 的 SWD 调试下载口会被关闭，导致 ST-Link/Keil 断联，表现为只能通过 BOOT0 或复位抢连。
+  - 将其改为 `GPIO_Remap_SWJ_JTAGDisable`，只关闭 JTAG、释放 PA15/PB3 给 TIM2 编码器使用，同时保留 SWD 下载调试能力。
+  - 该改动不影响 TIM2 完全重映射使用 PA15/PB3，但能避免用户程序运行后把调试口锁死。
+- **验证：** 待重新编译烧录。建议使用 ST-Link/CMSIS-DAP 以 `Connect under reset` 或按住复位连接，烧录该版本后 BOOT0 保持接 GND，后续应可正常复位运行并重新下载。
+
 ### 2026-06-17 — 增加启动阶段诊断显示
 
 - **改动者：** WuWingKit
