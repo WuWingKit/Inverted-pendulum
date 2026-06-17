@@ -1,9 +1,9 @@
 #include "balance.h"
 
 float Balance_Angle_Kp = 3.3f;
-float Balance_Soft_Angle_Kp = 3.0f;
-float Balance_Angle_Kd = 31.0f;
-float Balance_Soft_Angle_Kd = 28.0f;
+float Balance_Soft_Angle_Kp = 3.4f;
+float Balance_Angle_Kd = 34.0f;
+float Balance_Soft_Angle_Kd = 34.0f;
 float Balance_Rescue_Kp = 1.1f;
 float Balance_Speed_Kp = 1.35f;
 float Balance_Rescue_Speed_Kp = 0.75f;
@@ -62,6 +62,7 @@ void Balance_Stop(void)
 int Balance_Update(int angle_x100, int *encoder)
 {
 	int speed;
+	int raw_speed;
 	float angle_pwm;
 	float rescue_pwm;
 	float speed_pwm;
@@ -86,12 +87,13 @@ int Balance_Update(int angle_x100, int *encoder)
 		return 0;
 	}
 
-	speed = (encoder[0] + encoder[1] + encoder[2] + encoder[3]) / 4;
+	raw_speed = (encoder[0] + encoder[1] + encoder[2] + encoder[3]) / 4;
+	speed = raw_speed * 5 / BALANCE_LOOP_MS;
 	Balance_Position += speed;
 	Balance_Position = Balance_Limit(Balance_Position, 200000);
 
 	Balance_Speed_Filter = (Balance_Speed_Filter + speed) / 2;
-	Balance_Angle_Rate_X100 = angle_x100 - last_angle_x100;
+	Balance_Angle_Rate_X100 = (angle_x100 - last_angle_x100) * 5 / BALANCE_LOOP_MS;
 	last_angle_x100 = angle_x100;
 
 	abs_angle = Balance_Abs(angle_x100);
