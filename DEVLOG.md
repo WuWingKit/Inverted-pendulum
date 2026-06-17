@@ -239,6 +239,21 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 降低轻杆版小车冲出速度
+
+- **改动者：** WuWingKit
+- **类型：** 参数调整 / 稳定性调试
+- **改动文件：** `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
+- **内容：**
+  - 根据实车反馈“冲的速度太快”，将轻杆参数进一步调温和，优先降低小车冲出速度和反向过冲。
+  - 将 `BALANCE_PWM_LIMIT` 从 `6200` 降到 `4800`，限制最大追杆速度。
+  - 将 `BALANCE_MIN_OUTPUT` 从 `520` 降到 `380`，减小轻微角度时的起步突跳。
+  - 将 `Balance_Angle_Kp` 从 `3.4` 降到 `3.0`，`Balance_Soft_Angle_Kp` 从 `2.4` 降到 `2.1`，降低角度误差输出。
+  - 将 `Balance_Angle_Kd` 从 `28.0` 降到 `26.0`，`Balance_Soft_Angle_Kd` 从 `20.0` 降到 `18.0`，降低快速扰动时的过猛响应。
+  - 将 `Balance_Rescue_Kp` 从 `1.2` 降到 `0.9`，减小大角度额外救杆补偿。
+  - 将普通速度阻尼 `Balance_Speed_Kp` 从 `1.35` 提高到 `1.55`，救杆阶段速度阻尼 `Balance_Rescue_Speed_Kp` 从 `0.70` 提高到 `0.95`，让小车更早收速。
+- **验证：** 待重新编译烧录。若速度明显变柔但追杆不足，优先小幅提高 `BALANCE_PWM_LIMIT` 到 `5200`，不要先提高 `BALANCE_MIN_OUTPUT`。
+
 ### 2026-06-17 — 修复 LCD 白屏问题
 
 - **改动者：** WuWingKit
