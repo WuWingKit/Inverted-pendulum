@@ -9,10 +9,10 @@ float Balance_Speed_Kp = 1.10f;
 float Balance_Rescue_Speed_Kp = 0.30f;
 float Balance_Fall_Rate_Kd = 58.0f;
 float Balance_Fall_Speed_Kp = 0.04f;
-float Balance_Return_Speed_Kp = 1.25f;
+float Balance_Return_Speed_Kp = 1.60f;
 float Balance_Carry_Speed_Kp = 0.04f;
 float Balance_Carry_Angle_Kd = 0.0f;
-float Balance_Position_Kp = 0.001f;
+float Balance_Position_Kp = 0.003f;
 
 u8 Balance_Enable = 0;
 u8 Balance_Stop_Reason = BALANCE_STOP_NONE;
@@ -115,7 +115,8 @@ int Balance_Update(int angle_x100, int *encoder)
 
 	if(Balance_Abs(raw_angle_x100) < BALANCE_BIAS_ANGLE_X100 &&
 	   Balance_Abs(raw_angle_rate_x100) < BALANCE_BIAS_RATE_X100 &&
-	   Balance_Abs(Balance_Speed_Filter) < BALANCE_BIAS_SPEED)
+	   Balance_Abs(Balance_Speed_Filter) < BALANCE_BIAS_SPEED &&
+	   Balance_Abs(Balance_Position) < BALANCE_BIAS_POSITION)
 	{
 		angle_bias_x100 += 0.002f * ((float)raw_angle_x100 - angle_bias_x100);
 		if(angle_bias_x100 > BALANCE_BIAS_LIMIT_X100) angle_bias_x100 = BALANCE_BIAS_LIMIT_X100;
@@ -182,6 +183,10 @@ int Balance_Update(int angle_x100, int *encoder)
 	else if(abs_angle > BALANCE_RESCUE_ANGLE_X100)
 	{
 		speed_kp = Balance_Rescue_Speed_Kp;
+	}
+	if(abs_angle < BALANCE_SOFT_ANGLE_X100 && Balance_Abs(Balance_Speed_Filter) > BALANCE_DRIFT_SPEED)
+	{
+		speed_kp = Balance_Return_Speed_Kp;
 	}
 	speed_pwm = speed_kp * Balance_Speed_Filter;
 	position_pwm = (falling_away || (returning_home && abs_angle > BALANCE_RETURN_BRAKE_X100)) ?
