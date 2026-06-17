@@ -20,7 +20,8 @@
 #define BALANCE_BIAS_POSITION   8000
 #define BALANCE_BIAS_LIMIT_X100 180
 #define BALANCE_DRIFT_SPEED     600
-#define BALANCE_DRIFT_POSITION  12000
+#define BALANCE_DRIFT_POSITION  7000
+#define BALANCE_DRIFT_PUSH_LIMIT 900
 #define BALANCE_STOP_NONE      0
 #define BALANCE_STOP_ANGLE     1
 #define BALANCE_STOP_USER      2
@@ -35,6 +36,7 @@ extern float Balance_Fall_Rate_Kd;
 extern float Balance_Fall_Speed_Kp;
 extern float Balance_Return_Speed_Kp;
 extern float Balance_Position_Kp;
+extern float Balance_Drift_Position_Kp;
 
 extern u8 Balance_Enable;
 extern u8 Balance_Stop_Reason;

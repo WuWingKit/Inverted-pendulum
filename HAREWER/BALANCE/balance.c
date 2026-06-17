@@ -9,6 +9,7 @@ float Balance_Fall_Rate_Kd = 58.0f;
 float Balance_Fall_Speed_Kp = 0.04f;
 float Balance_Return_Speed_Kp = 2.20f;
 float Balance_Position_Kp = 0.005f;
+float Balance_Drift_Position_Kp = 0.012f;
 
 u8 Balance_Enable = 0;
 u8 Balance_Stop_Reason = BALANCE_STOP_NONE;
@@ -165,9 +166,15 @@ int Balance_Update(int angle_x100, int *encoder)
 		speed_kp = Balance_Return_Speed_Kp;
 	}
 	speed_pwm = speed_kp * Balance_Speed_Filter;
-	position_pwm = Balance_Position_Kp * Balance_Position;
+	position_pwm = (drifting ? Balance_Drift_Position_Kp : Balance_Position_Kp) * Balance_Position;
 
 	Balance_Output = BALANCE_OUTPUT_SIGN * (int)(angle_pwm + rescue_pwm - speed_pwm - position_pwm);
+	if(drifting && Balance_Position != 0 &&
+	   Balance_Sign(Balance_Output) == Balance_Sign(Balance_Position) &&
+	   Balance_Abs(Balance_Output) > BALANCE_DRIFT_PUSH_LIMIT)
+	{
+		Balance_Output = BALANCE_DRIFT_PUSH_LIMIT * Balance_Sign(Balance_Output);
+	}
 	Balance_Output = Balance_Limit(Balance_Output, BALANCE_PWM_LIMIT);
 	if(!drifting && falling_away && abs_angle > BALANCE_START_ANGLE_X100 && Balance_Output != 0 && Balance_Abs(Balance_Output) < BALANCE_MIN_OUTPUT)
 	{
