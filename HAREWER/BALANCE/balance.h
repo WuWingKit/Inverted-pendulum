@@ -14,6 +14,8 @@
 #define BALANCE_MIN_OUTPUT      480
 #define BALANCE_FALL_START_X100 120
 #define BALANCE_FALL_MIN_OUTPUT 1450
+#define BALANCE_CENTER_CAPTURE_X100 100
+#define BALANCE_RETURN_MIN_OUTPUT 760
 #define BALANCE_BIAS_ANGLE_X100 450
 #define BALANCE_BIAS_RATE_X100 260
 #define BALANCE_BIAS_SPEED      500
@@ -33,6 +35,7 @@ extern float Balance_Rescue_Speed_Kp;
 extern float Balance_Fall_Rate_Kd;
 extern float Balance_Fall_Speed_Kp;
 extern float Balance_Return_Speed_Kp;
+extern float Balance_Carry_Speed_Kp;
 extern float Balance_Position_Kp;
 
 extern u8 Balance_Enable;
