@@ -239,6 +239,20 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 修复烧录后 LCD 不亮与按键无响应风险
+
+- **改动者：** WuWingKit
+- **类型：** Bug 修复 / 稳定性调整
+- **改动文件：** `USER/main.c`, `HAREWER/ENCODER/encoder.c`, `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
+- **内容：**
+  - 根据烧录后“屏幕不亮、按按钮也没反应”的现象，优先恢复启动稳定性，而不是继续激进调参。
+  - 将 `LCD_Init()` 与启动提示显示提前到 `Encoder_Timer_Init()` 之前，避免软件编码器高频 TIM6 中断在 LCD 初始化前抢占过多 CPU。
+  - 上电后 LCD 先显示 `Cart balance` / `Init OK`，用于确认程序至少已经运行到 LCD 初始化之后。
+  - 将 D 轮软件编码器 TIM6 轮询频率从 `50kHz` 降到 `10kHz`，降低中断占用，避免主循环、LCD、按键扫描被高频中断压住。
+  - 将 `BALANCE_LOOP_MS` 从 `2ms` 回退到 `5ms`，撤回上一版激进控制周期，先保证主循环稳定。
+  - 将 `Balance_Angle_Kd` / `Balance_Soft_Angle_Kd` 和 `BALANCE_MIN_OUTPUT` 回退到上一版较稳参数，避免启动后控制输出过激。
+- **验证：** 待重新编译烧录。预期上电后 LCD 应立即显示 `Cart balance` 和 `Init OK`；若仍无显示，优先检查烧录目标、启动文件、供电和 LCD 背光引脚。
+
 ### 2026-06-16 — 提高控制循环频率并降低调试阻塞
 
 - **改动者：** WuWingKit

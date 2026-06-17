@@ -135,10 +135,13 @@ int main(void)
 	Encoder_Init_Tim2();
 	Encoder_Init_Tim3();
 	Encoder_Init_Soft();
-	Encoder_Timer_Init();
 
 	LCD_Init();
 	LCD_Fill(0, 0, 128, 128, BLACK);
+	LCD_ShowString(0,  0, (u8*)"Cart balance", WHITE, BLACK, 16, 0);
+	LCD_ShowString(0, 16, (u8*)"Init OK", GREEN, BLACK, 16, 0);
+
+	Encoder_Timer_Init();
 
 	printf("Cart balance ready. Hold pendulum vertical, press KEY2 to zero and start.\r\n");
 
@@ -162,14 +165,14 @@ int main(void)
 		pwm[3] = balance_pwm;
 		Set_PWM(pwm[0], pwm[1], pwm[2], pwm[3]);
 
-		if(++vbat_tick >= 50)
+		if(++vbat_tick >= 20)
 		{
 			vbat_tick = 0;
 			adcx = Get_adc(ADC_Channel_5);
 			vcc = (float)adcx * (3.3 * 11 / 4096);
 		}
 
-		if(++lcd_tick >= 50)
+		if(++lcd_tick >= 10)
 		{
 			lcd_tick = 0;
 			LCD_Show_Debug(encoder, pwm, vcc);
