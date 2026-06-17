@@ -22,6 +22,8 @@ extern float Balance_Soft_Angle_Kd;
 extern float Balance_Rescue_Kp;
 extern float Balance_Speed_Kp;
 extern float Balance_Rescue_Speed_Kp;
+extern float Balance_Fall_Rate_Kd;
+extern float Balance_Fall_Speed_Kp;
 extern float Balance_Position_Kp;
 
 extern u8 Balance_Enable;

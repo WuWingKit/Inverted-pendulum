@@ -7,6 +7,8 @@ float Balance_Soft_Angle_Kd = 40.0f;
 float Balance_Rescue_Kp = 1.6f;
 float Balance_Speed_Kp = 1.10f;
 float Balance_Rescue_Speed_Kp = 0.30f;
+float Balance_Fall_Rate_Kd = 26.0f;
+float Balance_Fall_Speed_Kp = 0.08f;
 float Balance_Position_Kp = 0.001f;
 
 u8 Balance_Enable = 0;
@@ -70,6 +72,7 @@ int Balance_Update(int angle_x100, int *encoder)
 	float angle_kp;
 	float angle_kd;
 	float speed_kp;
+	int falling_away;
 	int min_output;
 	int abs_angle;
 
@@ -97,6 +100,8 @@ int Balance_Update(int angle_x100, int *encoder)
 	last_angle_x100 = angle_x100;
 
 	abs_angle = Balance_Abs(angle_x100);
+	falling_away = (angle_x100 != 0 && Balance_Angle_Rate_X100 != 0 &&
+	               Balance_Sign(angle_x100) == Balance_Sign(Balance_Angle_Rate_X100));
 	if(abs_angle < BALANCE_SOFT_ANGLE_X100)
 	{
 		angle_kp = Balance_Soft_Angle_Kp;
@@ -109,18 +114,27 @@ int Balance_Update(int angle_x100, int *encoder)
 	}
 
 	angle_pwm = angle_kp * angle_x100 + angle_kd * Balance_Angle_Rate_X100;
+	if(falling_away)
+	{
+		angle_pwm += Balance_Fall_Rate_Kd * Balance_Angle_Rate_X100;
+	}
+
 	rescue_pwm = 0;
 	if(abs_angle > BALANCE_RESCUE_ANGLE_X100)
 	{
 		rescue_pwm = Balance_Rescue_Kp * (abs_angle - BALANCE_RESCUE_ANGLE_X100) * Balance_Sign(angle_x100);
 	}
 	speed_kp = Balance_Speed_Kp;
-	if(abs_angle > BALANCE_RESCUE_ANGLE_X100)
+	if(falling_away)
+	{
+		speed_kp = Balance_Fall_Speed_Kp;
+	}
+	else if(abs_angle > BALANCE_RESCUE_ANGLE_X100)
 	{
 		speed_kp = Balance_Rescue_Speed_Kp;
 	}
 	speed_pwm = speed_kp * Balance_Speed_Filter;
-	position_pwm = Balance_Position_Kp * Balance_Position;
+	position_pwm = falling_away ? 0 : Balance_Position_Kp * Balance_Position;
 
 	Balance_Output = BALANCE_OUTPUT_SIGN * (int)(angle_pwm + rescue_pwm - speed_pwm - position_pwm);
 	Balance_Output = Balance_Limit(Balance_Output, BALANCE_PWM_LIMIT);
