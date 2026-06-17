@@ -39,3 +39,7 @@ RTE/
 *.uvoptx
 *.orig
 *.tmp
+*_orig.c
+
+# Local tools / exports
+.lark-slides/

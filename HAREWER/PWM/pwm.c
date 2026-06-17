@@ -2,6 +2,11 @@
 #include "math.h"
 #include <stdlib.h>
 
+#define MOTOR_PWM_MAX       7199
+#define MOTOR_PWM_DEADZONE  900
+#define MOTOR_PWM_CMD_FLOOR 120
+#define MOTOR_PWM_DEADZONE_RAMP 900
+
 /**************************************************************************
 函数功能：pwm初始化
 入口参数：arr：设为一个时钟频率的最大值  psc： 预分频值
@@ -49,8 +54,36 @@ int myabs(int value){
 	if (value<0) value=-value;
 	return value;
 }
+static int Apply_PWM_Deadzone(int value)
+{
+	int pwm;
+	int sign;
+	int command;
+	int boost;
+
+	if(value == 0) return 0;
+	command = myabs(value);
+	if(command < MOTOR_PWM_CMD_FLOOR) return 0;
+
+	sign = value > 0 ? 1 : -1;
+	boost = MOTOR_PWM_DEADZONE;
+	if(command < MOTOR_PWM_DEADZONE_RAMP)
+	{
+		boost = MOTOR_PWM_DEADZONE * (command - MOTOR_PWM_CMD_FLOOR) /
+			(MOTOR_PWM_DEADZONE_RAMP - MOTOR_PWM_CMD_FLOOR);
+	}
+	pwm = command + boost;
+	if(pwm > MOTOR_PWM_MAX) pwm = MOTOR_PWM_MAX;
+
+	return sign * pwm;
+}
 void Set_PWM(int motor1,int motor2,int motor3,int motor4)
 {
+	 motor1 = Apply_PWM_Deadzone(motor1);
+	 motor2 = Apply_PWM_Deadzone(motor2);
+	 motor3 = Apply_PWM_Deadzone(motor3);
+	 motor4 = Apply_PWM_Deadzone(motor4);
+
 	if(motor1>0){
 		GPIO_SetBits(GPIOC, GPIO_Pin_14);	 // 高电平      PC14 --- AIN2      1   
 		GPIO_ResetBits(GPIOC, GPIO_Pin_13);	 // 低电平}   PC13 --- AIN1      0
@@ -86,6 +119,3 @@ void Set_PWM(int motor1,int motor2,int motor3,int motor4)
     TIM_SetCompare4(TIM5,myabs(motor4));
 	
 }
-
-
-

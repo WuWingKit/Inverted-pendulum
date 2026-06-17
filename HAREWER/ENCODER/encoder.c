@@ -128,7 +128,8 @@ void Encoder_Init_Tim2(void)
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_AFIO, ENABLE);//ʹ��PB�˿�ʱ��
 	
   GPIO_PinRemapConfig(GPIO_FullRemap_TIM2,ENABLE);
-  GPIO_PinRemapConfig(GPIO_Remap_SWJ_Disable,ENABLE);
+  // Free PA15/PB3 for TIM2 while keeping SWD (PA13/PA14) usable for recovery/debug.
+  GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
 	
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;	//�˿�����
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; //��������
