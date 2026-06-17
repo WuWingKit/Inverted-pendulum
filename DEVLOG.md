@@ -239,6 +239,18 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 增加启动阶段诊断显示
+
+- **改动者：** WuWingKit
+- **类型：** 调试增强 / 启动诊断
+- **改动文件：** `USER/main.c`, `DEVLOG.md`
+- **内容：**
+  - 针对 `BOOT0` 拉低后仍然出现“LCD 不亮、复位无反应”的问题，新增启动阶段诊断显示。
+  - 新增 `STARTUP_DIAGNOSTIC_MODE`，上电后先初始化串口与 LCD，再逐步显示 `BOOT LCD OK`、`GPIO OK`、`KEY OK`、`ADC OK`、`PWM OK` 等阶段标记。
+  - 诊断模式下临时跳过 `Encoder_Timer_Init()`，用于排查 TIM6 软件编码器高频中断是否导致主循环、LCD 或按键响应异常。
+  - PWM 初始化后立即执行 `Set_PWM(0, 0, 0, 0)`，确保诊断阶段电机保持停止。
+- **验证：** 待重新编译烧录。若 LCD 显示到 `ENC TIMER SKIP`，说明程序启动正常，后续重点排查 TIM6/编码器中断；若仍完全无显示，优先检查 Keil 下载目标、复位/BOOT 引脚、电源、晶振和 LCD 背光供电。
+
 ### 2026-06-17 — 回退控制周期实验版本
 
 - **改动者：** WuWingKit

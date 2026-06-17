@@ -17,10 +17,18 @@ KEY2: zero WDD35D4 angle sensor and start balance.
 KEY3: stop balance output.
 **************************************************************************/
 
+#define STARTUP_DIAGNOSTIC_MODE 1
+
 int TargetVelocity = 0;
 u16 angle_adc;
 int zero_offset = 2048;
 int angle_x100;
+
+static void Startup_Mark(u8 line, char *text)
+{
+	printf("BOOT: %s\r\n", text);
+	LCD_ShowString(0, line, (u8*)text, GREEN, BLACK, 16, 0);
+}
 
 static void Calibrate_Angle_Zero(void)
 {
@@ -126,19 +134,32 @@ int main(void)
 
 	SystemInit();
 	delay_init();
-	Gpio_Init();
-	KEY_Init();
 	uart_init(115200);
+	printf("BOOT: System/delay/uart OK\r\n");
+
+	LCD_Init();
+	LCD_Fill(0, 0, 128, 128, BLACK);
+	Startup_Mark(0, "BOOT LCD OK");
+
+	Gpio_Init();
+	Startup_Mark(16, "GPIO OK");
+	KEY_Init();
+	Startup_Mark(32, "KEY OK");
 	adc_Init();
+	Startup_Mark(48, "ADC OK");
 	PWM_Int(7199, 0);
+	Set_PWM(0, 0, 0, 0);
+	Startup_Mark(64, "PWM OK");
 	Encoder_Init_Tim8();
 	Encoder_Init_Tim2();
 	Encoder_Init_Tim3();
 	Encoder_Init_Soft();
+#if STARTUP_DIAGNOSTIC_MODE
+	Startup_Mark(80, "ENC TIMER SKIP");
+#else
 	Encoder_Timer_Init();
-
-	LCD_Init();
-	LCD_Fill(0, 0, 128, 128, BLACK);
+	Startup_Mark(80, "ENC TIMER OK");
+#endif
 
 	printf("Cart balance ready. Hold pendulum vertical, press KEY2 to zero and start.\r\n");
 
