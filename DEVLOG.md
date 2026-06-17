@@ -239,6 +239,22 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 适配减轻后的倒立摆杆参数
+
+- **改动者：** WuWingKit
+- **类型：** 参数调整 / 硬件适配
+- **改动文件：** `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
+- **内容：**
+  - 根据实车反馈，原摆杆过重导致小车跑到最大速度仍追不上；减轻摆杆后，原先为重杆设置的高输出和强救杆补偿会偏激进，因此重新调整为轻杆参数。
+  - 将 `BALANCE_PWM_LIMIT` 从 `7190` 降到 `6200`，避免轻杆状态下小车过快冲出导致反向过冲。
+  - 将 `BALANCE_SAFE_ANGLE_X100` 从 `5500` 降到 `4500`，回到更保守的保护范围，减少大角度无效追杆。
+  - 将 `BALANCE_MIN_OUTPUT` 从 `650` 降到 `520`，轻杆所需起步力更小，减少小角度突然冲动。
+  - 将 `Balance_Angle_Kp` 从 `4.0` 降到 `3.4`，`Balance_Soft_Angle_Kp` 从 `2.8` 降到 `2.4`，降低角度误差对应的基础输出。
+  - 将 `Balance_Angle_Kd` 从 `32.0` 降到 `28.0`，`Balance_Soft_Angle_Kd` 从 `24.0` 降到 `20.0`，降低快速变化时的过激反应。
+  - 将 `Balance_Rescue_Kp` 从 `2.2` 降到 `1.2`，减小大角度额外救杆补偿。
+  - 将普通速度阻尼 `Balance_Speed_Kp` 从 `1.20` 提高到 `1.35`，救杆阶段速度阻尼 `Balance_Rescue_Speed_Kp` 从 `0.25` 提高到 `0.70`，让轻杆追回后更容易收住车速。
+- **验证：** 待重新编译烧录。建议先用手扶杆小角度扰动测试，观察小车是否能补救且不过度冲出；若仍追不上，再小幅提高 `Balance_Angle_Kd` 或 `BALANCE_PWM_LIMIT`。
+
 ### 2026-06-17 — 关闭启动诊断模式并恢复正常运行
 
 - **改动者：** WuWingKit

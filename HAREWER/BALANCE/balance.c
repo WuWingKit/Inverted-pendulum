@@ -1,12 +1,12 @@
 #include "balance.h"
 
-float Balance_Angle_Kp = 4.0f;
-float Balance_Soft_Angle_Kp = 2.8f;
-float Balance_Angle_Kd = 32.0f;
-float Balance_Soft_Angle_Kd = 24.0f;
-float Balance_Rescue_Kp = 2.2f;
-float Balance_Speed_Kp = 1.20f;
-float Balance_Rescue_Speed_Kp = 0.25f;
+float Balance_Angle_Kp = 3.4f;
+float Balance_Soft_Angle_Kp = 2.4f;
+float Balance_Angle_Kd = 28.0f;
+float Balance_Soft_Angle_Kd = 20.0f;
+float Balance_Rescue_Kp = 1.2f;
+float Balance_Speed_Kp = 1.35f;
+float Balance_Rescue_Speed_Kp = 0.70f;
 float Balance_Position_Kp = 0.001f;
 
 u8 Balance_Enable = 0;
