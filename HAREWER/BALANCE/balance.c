@@ -1,14 +1,14 @@
 #include "balance.h"
 
-float Balance_Angle_Kp = 4.0f;
-float Balance_Soft_Angle_Kp = 3.6f;
-float Balance_Angle_Kd = 42.0f;
-float Balance_Soft_Angle_Kd = 40.0f;
-float Balance_Rescue_Kp = 1.6f;
+float Balance_Angle_Kp = 4.2f;
+float Balance_Soft_Angle_Kp = 2.4f;
+float Balance_Angle_Kd = 48.0f;
+float Balance_Soft_Angle_Kd = 24.0f;
+float Balance_Rescue_Kp = 2.4f;
 float Balance_Speed_Kp = 1.10f;
 float Balance_Rescue_Speed_Kp = 0.30f;
-float Balance_Fall_Rate_Kd = 26.0f;
-float Balance_Fall_Speed_Kp = 0.08f;
+float Balance_Fall_Rate_Kd = 44.0f;
+float Balance_Fall_Speed_Kp = 0.04f;
 float Balance_Position_Kp = 0.001f;
 
 u8 Balance_Enable = 0;
@@ -74,6 +74,7 @@ int Balance_Update(int angle_x100, int *encoder)
 	float speed_kp;
 	int falling_away;
 	int min_output;
+	int fall_min_output;
 	int abs_angle;
 
 	if(!Balance_Enable)
@@ -102,6 +103,13 @@ int Balance_Update(int angle_x100, int *encoder)
 	abs_angle = Balance_Abs(angle_x100);
 	falling_away = (angle_x100 != 0 && Balance_Angle_Rate_X100 != 0 &&
 	               Balance_Sign(angle_x100) == Balance_Sign(Balance_Angle_Rate_X100));
+	if(abs_angle < BALANCE_HOLD_ANGLE_X100 && Balance_Abs(Balance_Angle_Rate_X100) < BALANCE_HOLD_RATE_X100)
+	{
+		Balance_Output = 0;
+		Balance_Position = 0;
+		return 0;
+	}
+
 	if(abs_angle < BALANCE_SOFT_ANGLE_X100)
 	{
 		angle_kp = Balance_Soft_Angle_Kp;
@@ -148,6 +156,21 @@ int Balance_Update(int angle_x100, int *encoder)
 		if(Balance_Abs(Balance_Output) < min_output)
 		{
 			Balance_Output = min_output * Balance_Sign(Balance_Output);
+		}
+	}
+	if(falling_away && abs_angle > BALANCE_FALL_START_X100 && Balance_Output != 0)
+	{
+		fall_min_output = BALANCE_FALL_MIN_OUTPUT;
+		if(abs_angle < BALANCE_RESCUE_ANGLE_X100)
+		{
+			fall_min_output = BALANCE_MIN_OUTPUT +
+				(BALANCE_FALL_MIN_OUTPUT - BALANCE_MIN_OUTPUT) *
+				(abs_angle - BALANCE_FALL_START_X100) /
+				(BALANCE_RESCUE_ANGLE_X100 - BALANCE_FALL_START_X100);
+		}
+		if(Balance_Abs(Balance_Output) < fall_min_output)
+		{
+			Balance_Output = fall_min_output * Balance_Sign(Balance_Output);
 		}
 	}
 
