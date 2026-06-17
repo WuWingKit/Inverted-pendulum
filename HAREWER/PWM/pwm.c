@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #define MOTOR_PWM_MAX       7199
-#define MOTOR_PWM_DEADZONE  1100
+#define MOTOR_PWM_DEADZONE  900
 #define MOTOR_PWM_CMD_FLOOR 120
 #define MOTOR_PWM_DEADZONE_RAMP 900
 
