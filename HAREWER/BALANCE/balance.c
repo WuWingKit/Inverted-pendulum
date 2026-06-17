@@ -18,8 +18,11 @@ int Balance_Output = 0;
 int Balance_Position = 0;
 int Balance_Speed_Filter = 0;
 int Balance_Angle_Rate_X100 = 0;
+int Balance_Angle_Bias_X100 = 0;
 
 static int last_angle_x100 = 0;
+static int last_raw_angle_x100 = 0;
+static float angle_bias_x100 = 0.0f;
 
 static int Balance_Limit(int value, int limit)
 {
@@ -46,7 +49,10 @@ void Balance_Reset(void)
 	Balance_Position = 0;
 	Balance_Speed_Filter = 0;
 	Balance_Angle_Rate_X100 = 0;
+	Balance_Angle_Bias_X100 = 0;
 	last_angle_x100 = 0;
+	last_raw_angle_x100 = 0;
+	angle_bias_x100 = 0.0f;
 	Balance_Stop_Reason = BALANCE_STOP_NONE;
 }
 
@@ -77,12 +83,15 @@ int Balance_Update(int angle_x100, int *encoder)
 	int returning_home;
 	int min_output;
 	int fall_min_output;
+	int raw_angle_x100;
+	int raw_angle_rate_x100;
 	int abs_angle;
 
 	if(!Balance_Enable)
 	{
 		Balance_Output = 0;
 		last_angle_x100 = angle_x100;
+		last_raw_angle_x100 = angle_x100;
 		return 0;
 	}
 
@@ -99,7 +108,22 @@ int Balance_Update(int angle_x100, int *encoder)
 	Balance_Position = Balance_Limit(Balance_Position, 200000);
 
 	Balance_Speed_Filter = (Balance_Speed_Filter + speed) / 2;
+	raw_angle_x100 = angle_x100;
+	raw_angle_rate_x100 = (raw_angle_x100 - last_raw_angle_x100) * 5 / BALANCE_LOOP_MS;
+
+	if(Balance_Abs(raw_angle_x100) < BALANCE_BIAS_ANGLE_X100 &&
+	   Balance_Abs(raw_angle_rate_x100) < BALANCE_BIAS_RATE_X100 &&
+	   Balance_Abs(Balance_Speed_Filter) < BALANCE_BIAS_SPEED)
+	{
+		angle_bias_x100 += 0.002f * ((float)raw_angle_x100 - angle_bias_x100);
+		if(angle_bias_x100 > BALANCE_BIAS_LIMIT_X100) angle_bias_x100 = BALANCE_BIAS_LIMIT_X100;
+		if(angle_bias_x100 < -BALANCE_BIAS_LIMIT_X100) angle_bias_x100 = -BALANCE_BIAS_LIMIT_X100;
+		Balance_Angle_Bias_X100 = (int)angle_bias_x100;
+	}
+
+	angle_x100 = raw_angle_x100 - Balance_Angle_Bias_X100;
 	Balance_Angle_Rate_X100 = (angle_x100 - last_angle_x100) * 5 / BALANCE_LOOP_MS;
+	last_raw_angle_x100 = raw_angle_x100;
 	last_angle_x100 = angle_x100;
 
 	abs_angle = Balance_Abs(angle_x100);

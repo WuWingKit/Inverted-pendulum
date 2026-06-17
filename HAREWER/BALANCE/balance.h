@@ -14,6 +14,10 @@
 #define BALANCE_MIN_OUTPUT      320
 #define BALANCE_FALL_START_X100 300
 #define BALANCE_FALL_MIN_OUTPUT 1250
+#define BALANCE_BIAS_ANGLE_X100 450
+#define BALANCE_BIAS_RATE_X100 260
+#define BALANCE_BIAS_SPEED      500
+#define BALANCE_BIAS_LIMIT_X100 180
 #define BALANCE_STOP_NONE      0
 #define BALANCE_STOP_ANGLE     1
 #define BALANCE_STOP_USER      2
@@ -37,6 +41,7 @@ extern int Balance_Output;
 extern int Balance_Position;
 extern int Balance_Speed_Filter;
 extern int Balance_Angle_Rate_X100;
+extern int Balance_Angle_Bias_X100;
 
 void Balance_Reset(void);
 void Balance_Start(void);
