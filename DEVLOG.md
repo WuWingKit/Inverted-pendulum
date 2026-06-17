@@ -239,6 +239,18 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 修复 LCD 白屏问题
+
+- **改动者：** WuWingKit
+- **类型：** Bug 修复 / 引脚复用修复
+- **改动文件：** `HAREWER/LCD/lcd_init.c`, `DEVLOG.md`
+- **内容：**
+  - 针对烧录后 LCD 背光亮但全白的问题，排查发现 LCD 的 SCLK 使用 `PB4`，而 `PB4` 默认是 JTAG 的 `NJTRST` 引脚。
+  - 之前为了保留 SWD，将 `GPIO_Remap_SWJ_Disable` 修正为 `GPIO_Remap_SWJ_JTAGDisable` 是正确的，但关闭 JTAG 的动作发生在 `LCD_Init()` 之后，导致 LCD 初始化时 `PB4` 仍未释放为普通 GPIO。
+  - 在 `LCD_GPIO_Init()` 中启用 `RCC_APB2Periph_AFIO`，并在配置 `PB4~PB9` 前调用 `GPIO_Remap_SWJ_JTAGDisable`，只关闭 JTAG、保留 SWD，同时释放 `PB4` 给 LCD SCLK 使用。
+  - 该修复保证 LCD 初始化不依赖编码器初始化顺序，也避免再次关闭 SWD 下载调试口。
+- **验证：** 待重新编译烧录。预期 BOOT0 接 GND 后上电，LCD 不再白屏，应显示正常调试页面。
+
 ### 2026-06-17 — 适配减轻后的倒立摆杆参数
 
 - **改动者：** WuWingKit
