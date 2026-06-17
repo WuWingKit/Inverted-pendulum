@@ -239,6 +239,20 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 改为防倒优先并限制单向漂移
+
+- **改动者：** WuWingKit
+- **类型：** 控制策略调整 / 防倒策略
+- **改动文件：** `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
+- **内容：**
+  - 根据新目标“不要求杆子最后稳定立着，允许一直晃动，但不能倒下，也不能让小车往一个方向持续缓慢加速”，将策略从静稳优先改为防倒优先。
+  - 新增 `drifting` 状态：当车速 `Balance_Speed_Filter` 超过 `BALANCE_DRIFT_SPEED` 或位置 `Balance_Position` 超过 `BALANCE_DRIFT_POSITION` 时，认为小车正在单方向耗尽速度余量。
+  - 将 `BALANCE_DRIFT_SPEED` 从 `900` 降到 `600`，新增 `BALANCE_DRIFT_POSITION = 12000`，更早识别小车单向漂移。
+  - 将漂移状态下速度阻尼强制提高到 `Balance_Return_Speed_Kp = 2.20`，位置回中提高到 `Balance_Position_Kp = 0.005`，让小车优先泄掉单方向速度。
+  - 漂移状态下禁用最小输出保底和救杆最小输出保底，避免小车已经跑偏时仍被强制继续向同方向加速。
+  - 保留角度 PD 与救杆补偿，允许杆子来回摆动，但不再放任小车持续往一个方向加速到没有速度余量。
+- **验证：** 待重新编译烧录。重点观察 `SF` 和小车位移是否不再持续单方向增大；杆子来回摆动可接受，只要不倒下且速度能周期性释放。
+
 ### 2026-06-17 — 修复救杆插值除零警告
 
 - **改动者：** WuWingKit
