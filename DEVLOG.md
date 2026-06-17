@@ -239,33 +239,19 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
-### 2026-06-17 — 修复烧录后 LCD 不亮与按键无响应风险
+### 2026-06-17 — 回退控制周期实验版本
 
 - **改动者：** WuWingKit
-- **类型：** Bug 修复 / 稳定性调整
-- **改动文件：** `USER/main.c`, `HAREWER/ENCODER/encoder.c`, `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
+- **类型：** 回退 / 稳定性调整
+- **改动文件：** `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `HAREWER/ENCODER/encoder.c`, `USER/main.c`, `DEVLOG.md`
 - **内容：**
-  - 根据烧录后“屏幕不亮、按按钮也没反应”的现象，优先恢复启动稳定性，而不是继续激进调参。
-  - 将 `LCD_Init()` 与启动提示显示提前到 `Encoder_Timer_Init()` 之前，避免软件编码器高频 TIM6 中断在 LCD 初始化前抢占过多 CPU。
-  - 上电后 LCD 先显示 `Cart balance` / `Init OK`，用于确认程序至少已经运行到 LCD 初始化之后。
-  - 将 D 轮软件编码器 TIM6 轮询频率从 `50kHz` 降到 `10kHz`，降低中断占用，避免主循环、LCD、按键扫描被高频中断压住。
-  - 将 `BALANCE_LOOP_MS` 从 `2ms` 回退到 `5ms`，撤回上一版激进控制周期，先保证主循环稳定。
-  - 将 `Balance_Angle_Kd` / `Balance_Soft_Angle_Kd` 和 `BALANCE_MIN_OUTPUT` 回退到上一版较稳参数，避免启动后控制输出过激。
-- **验证：** 待重新编译烧录。预期上电后 LCD 应立即显示 `Cart balance` 和 `Init OK`；若仍无显示，优先检查烧录目标、启动文件、供电和 LCD 背光引脚。
-
-### 2026-06-16 — 提高控制循环频率并降低调试阻塞
-
-- **改动者：** WuWingKit
-- **类型：** 控制策略调整 / 调试优化
-- **改动文件：** `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `USER/main.c`, `DEVLOG.md`
-- **内容：**
-  - 根据实车测试“最佳情况摆动约四次但幅度越来越大、摆杆倒向一侧时小车加速已经来不及”的现象，优先降低控制延迟并增加角速度阻尼。
-  - 将 `BALANCE_LOOP_MS` 从 `5ms` 调整为 `2ms`，提高主平衡控制刷新频率，减少追杆相位滞后。
-  - 将编码器速度 `speed` 和角速度 `Balance_Angle_Rate_X100` 按 5ms 等效量进行归一化，避免控制周期改变后速度反馈和 D 项量级突变。
-  - 将 LCD 与串口调试输出从约 `50ms` 降频到约 `100ms`，减少 LCD 刷新和 `printf` 对平衡主循环的周期性阻塞。
-  - 将 `Balance_Angle_Kd` 从 `32.0` 提高到 `36.0`，`Balance_Soft_Angle_Kd` 从 `24.0` 提高到 `28.0`，增强摆动过程中的阻尼。
-  - 将 `BALANCE_MIN_OUTPUT` 从 `650` 提高到 `750`，改善轻微扰动时电机起步迟滞。
-- **验证：** 待硬件测试。重点观察摆动幅度是否从逐次变大变为逐次变小；若仍然越摆越大，下一步优先继续提高 D 项或进一步降低调试输出频率。
+  - 根据烧录后“屏幕不亮、按按钮也没反应”的现象，按要求回退到修改控制周期之前的代码状态。
+  - 将 `BALANCE_LOOP_MS` 恢复为 `5ms`，撤回 `2ms` 控制周期实验。
+  - 将 `BALANCE_MIN_OUTPUT` 恢复为 `650`，撤回上一版更激进的起步补偿。
+  - 将 `Balance_Angle_Kd` 恢复为 `32.0`，`Balance_Soft_Angle_Kd` 恢复为 `24.0`。
+  - 恢复 `USER/main.c` 中 LCD/串口调试周期与初始化顺序到控制周期实验前版本。
+  - 恢复 `HAREWER/ENCODER/encoder.c` 中 TIM6 软件编码器轮询频率到控制周期实验前版本。
+- **验证：** 待重新编译烧录。预期行为与 `193ed05 tune: improve small angle startup response` 基本一致，仅新增本回退日志。
 
 ### 2026-06-16 — 提高小角度起步响应
 

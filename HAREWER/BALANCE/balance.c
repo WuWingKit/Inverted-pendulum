@@ -62,7 +62,6 @@ void Balance_Stop(void)
 int Balance_Update(int angle_x100, int *encoder)
 {
 	int speed;
-	int raw_speed;
 	float angle_pwm;
 	float rescue_pwm;
 	float speed_pwm;
@@ -86,13 +85,12 @@ int Balance_Update(int angle_x100, int *encoder)
 		return 0;
 	}
 
-	raw_speed = (encoder[0] + encoder[1] + encoder[2] + encoder[3]) / 4;
-	speed = raw_speed * 5 / BALANCE_LOOP_MS;
+	speed = (encoder[0] + encoder[1] + encoder[2] + encoder[3]) / 4;
 	Balance_Position += speed;
 	Balance_Position = Balance_Limit(Balance_Position, 200000);
 
 	Balance_Speed_Filter = (Balance_Speed_Filter + speed) / 2;
-	Balance_Angle_Rate_X100 = (angle_x100 - last_angle_x100) * 5 / BALANCE_LOOP_MS;
+	Balance_Angle_Rate_X100 = angle_x100 - last_angle_x100;
 	last_angle_x100 = angle_x100;
 
 	abs_angle = Balance_Abs(angle_x100);
