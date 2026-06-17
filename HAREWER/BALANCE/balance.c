@@ -11,7 +11,7 @@ float Balance_Fall_Rate_Kd = 58.0f;
 float Balance_Fall_Speed_Kp = 0.04f;
 float Balance_Return_Speed_Kp = 1.25f;
 float Balance_Carry_Speed_Kp = 0.04f;
-float Balance_Carry_Angle_Kd = 12.0f;
+float Balance_Carry_Angle_Kd = 0.0f;
 float Balance_Position_Kp = 0.001f;
 
 u8 Balance_Enable = 0;
@@ -188,6 +188,11 @@ int Balance_Update(int angle_x100, int *encoder)
 		0 : Balance_Position_Kp * Balance_Position;
 
 	Balance_Output = BALANCE_OUTPUT_SIGN * (int)(angle_pwm + rescue_pwm - speed_pwm - position_pwm);
+	if(returning_home && abs_angle > BALANCE_CENTER_CAPTURE_X100 &&
+	   Balance_Output != 0 && Balance_Sign(Balance_Output) != Balance_Sign(angle_x100))
+	{
+		Balance_Output = BALANCE_OUTPUT_SIGN * (int)(angle_kp * angle_x100);
+	}
 	Balance_Output = Balance_Limit(Balance_Output, BALANCE_PWM_LIMIT);
 	if(falling_away && abs_angle > BALANCE_START_ANGLE_X100 && Balance_Output != 0 && Balance_Abs(Balance_Output) < BALANCE_MIN_OUTPUT)
 	{
