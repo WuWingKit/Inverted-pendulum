@@ -211,12 +211,12 @@ int main(void)
 		if(serial_update_flag)
 		{
 			serial_update_flag = 0;
-			printf("BAL=%d Stop=%d V=%.2f A=%d B=%d C=%d D=%d PWM=%d Ang=%d.%02d Rate=%d SF=%d Bias=%d ADC=%d Off=%d\r\n",
+			printf("BAL=%d Stop=%d V=%.2f A=%d B=%d C=%d D=%d PWM=%d Ang=%d.%02d Rate=%d SF=%d Pos=%d Bias=%d ADC=%d Off=%d\r\n",
 				Balance_Enable, Balance_Stop_Reason, vcc,
 				encoder[0], encoder[1], encoder[2], encoder[3],
 				balance_pwm,
 				angle_x100 / 100, (angle_x100 < 0 ? -angle_x100 : angle_x100) % 100,
-				Balance_Angle_Rate_X100, Balance_Speed_Filter, Balance_Angle_Bias_X100, angle_adc, zero_offset);
+				Balance_Angle_Rate_X100, Balance_Speed_Filter, Balance_Position, Balance_Angle_Bias_X100, angle_adc, zero_offset);
 		}
 
 		if(lcd_update_flag)

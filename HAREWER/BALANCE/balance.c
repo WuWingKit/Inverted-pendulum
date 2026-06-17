@@ -120,7 +120,8 @@ int Balance_Update(int angle_x100, int *encoder)
 	raw_angle_x100 = angle_x100;
 	raw_angle_rate_x100 = (raw_angle_x100 - last_raw_angle_x100) * 5 / BALANCE_LOOP_MS;
 
-	if(Balance_Abs(raw_angle_x100) < BALANCE_BIAS_ANGLE_X100 &&
+	if(BALANCE_AUTO_BIAS_ENABLE &&
+	   Balance_Abs(raw_angle_x100) < BALANCE_BIAS_ANGLE_X100 &&
 	   Balance_Abs(raw_angle_rate_x100) < BALANCE_BIAS_RATE_X100 &&
 	   Balance_Abs(Balance_Speed_Filter) < BALANCE_BIAS_SPEED &&
 	   Balance_Abs(Balance_Position) < BALANCE_BIAS_POSITION)
@@ -142,10 +143,9 @@ int Balance_Update(int angle_x100, int *encoder)
 	drifting = (Balance_Abs(Balance_Speed_Filter) > BALANCE_DRIFT_SPEED ||
 	           Balance_Abs(Balance_Position) > BALANCE_DRIFT_POSITION);
 	if(kick_cooldown_ticks > 0) kick_cooldown_ticks--;
-	if(abs_angle < BALANCE_HOLD_ANGLE_X100 && Balance_Abs(Balance_Angle_Rate_X100) < BALANCE_HOLD_RATE_X100)
+	if(!drifting && abs_angle < BALANCE_HOLD_ANGLE_X100 && Balance_Abs(Balance_Angle_Rate_X100) < BALANCE_HOLD_RATE_X100)
 	{
 		Balance_Output = 0;
-		Balance_Position = 0;
 		return 0;
 	}
 
@@ -210,8 +210,14 @@ int Balance_Update(int angle_x100, int *encoder)
 		recover_ticks--;
 	}
 	if(!kicking_now && drifting && Balance_Position != 0 &&
-	   Balance_Sign(Balance_Output) == Balance_Sign(Balance_Position) &&
-	   Balance_Abs(Balance_Output) > BALANCE_DRIFT_PUSH_LIMIT)
+	   abs_angle < BALANCE_DRIFT_RECENTER_ANGLE_X100 &&
+	   Balance_Sign(Balance_Output) == Balance_Sign(Balance_Position))
+	{
+		Balance_Output = -BALANCE_OUTPUT_SIGN * BALANCE_DRIFT_PULL_PWM * Balance_Sign(Balance_Position);
+	}
+	else if(!kicking_now && drifting && Balance_Position != 0 &&
+	        Balance_Sign(Balance_Output) == Balance_Sign(Balance_Position) &&
+	        Balance_Abs(Balance_Output) > BALANCE_DRIFT_PUSH_LIMIT)
 	{
 		Balance_Output = BALANCE_DRIFT_PUSH_LIMIT * Balance_Sign(Balance_Output);
 	}
