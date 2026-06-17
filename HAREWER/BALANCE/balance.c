@@ -1,12 +1,12 @@
 #include "balance.h"
 
-float Balance_Angle_Kp = 3.0f;
-float Balance_Soft_Angle_Kp = 2.1f;
-float Balance_Angle_Kd = 26.0f;
-float Balance_Soft_Angle_Kd = 18.0f;
-float Balance_Rescue_Kp = 0.9f;
-float Balance_Speed_Kp = 1.55f;
-float Balance_Rescue_Speed_Kp = 0.95f;
+float Balance_Angle_Kp = 3.3f;
+float Balance_Soft_Angle_Kp = 3.0f;
+float Balance_Angle_Kd = 31.0f;
+float Balance_Soft_Angle_Kd = 28.0f;
+float Balance_Rescue_Kp = 1.1f;
+float Balance_Speed_Kp = 1.35f;
+float Balance_Rescue_Speed_Kp = 0.75f;
 float Balance_Position_Kp = 0.001f;
 
 u8 Balance_Enable = 0;
@@ -69,6 +69,7 @@ int Balance_Update(int angle_x100, int *encoder)
 	float angle_kp;
 	float angle_kd;
 	float speed_kp;
+	int min_output;
 	int abs_angle;
 
 	if(!Balance_Enable)
@@ -123,7 +124,15 @@ int Balance_Update(int angle_x100, int *encoder)
 	Balance_Output = Balance_Limit(Balance_Output, BALANCE_PWM_LIMIT);
 	if(abs_angle > BALANCE_START_ANGLE_X100 && Balance_Output != 0 && Balance_Abs(Balance_Output) < BALANCE_MIN_OUTPUT)
 	{
-		Balance_Output = BALANCE_MIN_OUTPUT * Balance_Sign(Balance_Output);
+		min_output = BALANCE_MIN_OUTPUT;
+		if(abs_angle < BALANCE_SOFT_ANGLE_X100)
+		{
+			min_output = BALANCE_MIN_OUTPUT * (abs_angle - BALANCE_START_ANGLE_X100) / (BALANCE_SOFT_ANGLE_X100 - BALANCE_START_ANGLE_X100);
+		}
+		if(Balance_Abs(Balance_Output) < min_output)
+		{
+			Balance_Output = min_output * Balance_Sign(Balance_Output);
+		}
 	}
 
 	return Balance_Output;
