@@ -21,6 +21,10 @@ int Balance_Angle_Bias_X100 = 0;
 
 static int last_angle_x100 = 0;
 static int last_raw_angle_x100 = 0;
+static int kick_ticks = 0;
+static int recover_ticks = 0;
+static int kick_cooldown_ticks = 0;
+static int kick_direction = 0;
 static float angle_bias_x100 = 0.0f;
 
 static int Balance_Limit(int value, int limit)
@@ -51,6 +55,10 @@ void Balance_Reset(void)
 	Balance_Angle_Bias_X100 = 0;
 	last_angle_x100 = 0;
 	last_raw_angle_x100 = 0;
+	kick_ticks = 0;
+	recover_ticks = 0;
+	kick_cooldown_ticks = 0;
+	kick_direction = 0;
 	angle_bias_x100 = 0.0f;
 	Balance_Stop_Reason = BALANCE_STOP_NONE;
 }
@@ -80,6 +88,8 @@ int Balance_Update(int angle_x100, int *encoder)
 	float speed_kp;
 	int falling_away;
 	int drifting;
+	int kick_ready;
+	int kicking_now;
 	int min_output;
 	int fall_min_output;
 	int raw_angle_x100;
@@ -131,11 +141,22 @@ int Balance_Update(int angle_x100, int *encoder)
 	               Balance_Sign(angle_x100) == Balance_Sign(Balance_Angle_Rate_X100));
 	drifting = (Balance_Abs(Balance_Speed_Filter) > BALANCE_DRIFT_SPEED ||
 	           Balance_Abs(Balance_Position) > BALANCE_DRIFT_POSITION);
+	if(kick_cooldown_ticks > 0) kick_cooldown_ticks--;
 	if(abs_angle < BALANCE_HOLD_ANGLE_X100 && Balance_Abs(Balance_Angle_Rate_X100) < BALANCE_HOLD_RATE_X100)
 	{
 		Balance_Output = 0;
 		Balance_Position = 0;
 		return 0;
+	}
+
+	kick_ready = drifting && falling_away &&
+		abs_angle > BALANCE_KICK_ANGLE_X100 &&
+		Balance_Abs(Balance_Speed_Filter) > BALANCE_KICK_SPEED &&
+		kick_ticks == 0 && recover_ticks == 0 && kick_cooldown_ticks == 0;
+	if(kick_ready)
+	{
+		kick_direction = Balance_Sign(angle_x100);
+		kick_ticks = BALANCE_KICK_TICKS;
 	}
 
 	angle_kp = Balance_Angle_Kp;
@@ -165,11 +186,30 @@ int Balance_Update(int angle_x100, int *encoder)
 	{
 		speed_kp = Balance_Return_Speed_Kp;
 	}
+	if(recover_ticks > 0)
+	{
+		speed_kp = BALANCE_RECOVER_SPEED_KP;
+	}
 	speed_pwm = speed_kp * Balance_Speed_Filter;
 	position_pwm = (drifting ? Balance_Drift_Position_Kp : Balance_Position_Kp) * Balance_Position;
 
 	Balance_Output = BALANCE_OUTPUT_SIGN * (int)(angle_pwm + rescue_pwm - speed_pwm - position_pwm);
-	if(drifting && Balance_Position != 0 &&
+	kicking_now = (kick_ticks > 0);
+	if(kicking_now)
+	{
+		Balance_Output = BALANCE_KICK_PWM * kick_direction;
+		kick_ticks--;
+		if(kick_ticks == 0)
+		{
+			recover_ticks = BALANCE_RECOVER_TICKS;
+			kick_cooldown_ticks = BALANCE_KICK_COOLDOWN_TICKS;
+		}
+	}
+	else if(recover_ticks > 0)
+	{
+		recover_ticks--;
+	}
+	if(!kicking_now && drifting && Balance_Position != 0 &&
 	   Balance_Sign(Balance_Output) == Balance_Sign(Balance_Position) &&
 	   Balance_Abs(Balance_Output) > BALANCE_DRIFT_PUSH_LIMIT)
 	{
