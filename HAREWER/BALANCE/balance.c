@@ -181,7 +181,7 @@ int Balance_Update(int angle_x100, int *encoder)
 	if(falling_away && abs_angle > BALANCE_FALL_START_X100 && Balance_Output != 0)
 	{
 		fall_min_output = BALANCE_FALL_MIN_OUTPUT;
-		if(abs_angle < BALANCE_RESCUE_ANGLE_X100)
+		if(abs_angle < BALANCE_RESCUE_ANGLE_X100 && BALANCE_RESCUE_ANGLE_X100 > BALANCE_FALL_START_X100)
 		{
 			fall_min_output = BALANCE_MIN_OUTPUT +
 				(BALANCE_FALL_MIN_OUTPUT - BALANCE_MIN_OUTPUT) *

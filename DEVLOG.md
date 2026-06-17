@@ -239,6 +239,17 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 修复救杆插值除零警告
+
+- **改动者：** WuWingKit
+- **类型：** Bug 修复 / 编译警告修复
+- **改动文件：** `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
+- **内容：**
+  - 修复 Keil ARMCC 警告 `#39-D: division by zero`，原因是 `BALANCE_RESCUE_ANGLE_X100` 与 `BALANCE_FALL_START_X100` 同为 `120`，导致救杆最小输出插值分母为 0。
+  - 将 `BALANCE_FALL_START_X100` 从 `120` 调整为 `80`，约 `0.8°` 开始最小救杆输出爬坡，到约 `1.2°` 进入完整救杆补偿，保持统一大小角度策略的同时避免除零。
+  - 在插值计算前增加 `BALANCE_RESCUE_ANGLE_X100 > BALANCE_FALL_START_X100` 判断，防止后续改参时再次出现除零警告。
+- **验证：** 待重新 Rebuild。预期 `balance.c` 不再出现 division by zero warning。
+
 ### 2026-06-17 — 统一大小角度控制策略
 
 - **改动者：** WuWingKit
