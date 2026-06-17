@@ -150,7 +150,7 @@ int Balance_Update(int angle_x100, int *encoder)
 		angle_kp = Balance_Angle_Kp;
 		angle_kd = Balance_Angle_Kd;
 	}
-	if(returning_home && abs_angle > BALANCE_CENTER_CAPTURE_X100)
+	if(returning_home && abs_angle > BALANCE_RETURN_BRAKE_X100)
 	{
 		angle_kd = Balance_Carry_Angle_Kd;
 	}
@@ -171,7 +171,7 @@ int Balance_Update(int angle_x100, int *encoder)
 	{
 		speed_kp = Balance_Fall_Speed_Kp;
 	}
-	else if(returning_home && abs_angle > BALANCE_CENTER_CAPTURE_X100)
+	else if(returning_home && abs_angle > BALANCE_RETURN_BRAKE_X100)
 	{
 		speed_kp = Balance_Carry_Speed_Kp;
 	}
@@ -184,11 +184,11 @@ int Balance_Update(int angle_x100, int *encoder)
 		speed_kp = Balance_Rescue_Speed_Kp;
 	}
 	speed_pwm = speed_kp * Balance_Speed_Filter;
-	position_pwm = (falling_away || (returning_home && abs_angle > BALANCE_CENTER_CAPTURE_X100)) ?
+	position_pwm = (falling_away || (returning_home && abs_angle > BALANCE_RETURN_BRAKE_X100)) ?
 		0 : Balance_Position_Kp * Balance_Position;
 
 	Balance_Output = BALANCE_OUTPUT_SIGN * (int)(angle_pwm + rescue_pwm - speed_pwm - position_pwm);
-	if(returning_home && abs_angle > BALANCE_CENTER_CAPTURE_X100 &&
+	if(returning_home && abs_angle > BALANCE_RETURN_BRAKE_X100 &&
 	   Balance_Output != 0 && Balance_Sign(Balance_Output) != Balance_Sign(angle_x100))
 	{
 		Balance_Output = BALANCE_OUTPUT_SIGN * (int)(angle_kp * angle_x100);

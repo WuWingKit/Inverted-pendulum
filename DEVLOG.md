@@ -239,6 +239,18 @@ printf("RAW: PA6=%d PA7=%d PB10=%d PB11=%d\r\n", pa6, pa7, pb10, pb11);
 
 ## 开发日志
 
+### 2026-06-17 — 恢复小角度左右阻尼修正
+
+- **改动者：** WuWingKit
+- **类型：** 控制策略调整 / 阻尼修正
+- **改动文件：** `HAREWER/BALANCE/balance.c`, `HAREWER/BALANCE/balance.h`, `DEVLOG.md`
+- **内容：**
+  - 根据实车反馈“大角度能明显左右摇晃修正，小角度只有加速、停下、再加速的循环，没有左右修正”，定位为上一版中心前防反向刹车保护范围过宽。
+  - 新增 `BALANCE_RETURN_BRAKE_X100 = 250`，约 `2.5°` 以上才启用“送杆到中心”的弱阻尼保护。
+  - `0.6°~2.5°` 小角度回正区重新允许正常 `Balance_Return_Speed_Kp` 和角速度 D 阻尼参与，让小角度也能出现左右修正，而不是只同方向加速/停下。
+  - 位置回中暂停、Carry 弱阻尼和输出方向保护也都改为只在 `abs_angle > BALANCE_RETURN_BRAKE_X100` 时生效，避免覆盖整个小角度调节区。
+- **验证：** 待重新编译烧录。重点观察 `0.6°~2.5°` 内是否恢复左右微调；若小角度又开始抽动，再微调 `BALANCE_RETURN_BRAKE_X100` 或 `Balance_Return_Speed_Kp`。
+
 ### 2026-06-17 — 防止回正途中输出反向刹车
 
 - **改动者：** WuWingKit
