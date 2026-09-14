@@ -1,237 +1,129 @@
-# Inverted Pendulum Cart Project — D24A (Hall Encoder)
+# STM32 Inverted Pendulum Cart
 
-[![Platform](https://img.shields.io/badge/platform-STM32F103RCT6-blue)](https://www.st.com/en/microcontrollers-microprocessors/stm32f103rc.html)
-[![Library](https://img.shields.io/badge/library-STDPeriph%20V3.5.0-green)](https://www.st.com/en/embedded-software/stm32-standard-peripheral-libraries.html)
-[![IDE](https://img.shields.io/badge/IDE-Keil%20MDK-orange)](https://www.keil.com/product/)
-[![Language](https://img.shields.io/badge/language-C-lightgrey)]()
+[中文](./README.zh-CN.md) · [Demo video](./media/demonstration.mp4) · [Presentation](./presentation/project-presentation.pptx) · [Course report](./控制工程原理课程设计报告.md)
 
-A cart inverted pendulum project based on STM32F103RCT6, the WHEELTEC D24A four-wheel chassis, and the WDD35D4 angular displacement sensor.
+[![STM32F103](https://img.shields.io/badge/MCU-STM32F103RCT6-03234B?logo=stmicroelectronics)](https://www.st.com/en/microcontrollers-microprocessors/stm32f103rc.html)
+[![Control](https://img.shields.io/badge/Control-PD_+_Speed_+_Position-0A8FDC)](#control-strategy)
+[![C](https://img.shields.io/badge/Language-C-A8B9CC?logo=c)](https://www.iso.org/standard/82075.html)
+[![Keil](https://img.shields.io/badge/IDE-Keil_MDK-394049)](https://www.keil.com/)
+[![Loop](https://img.shields.io/badge/Control_loop-500_Hz-success)](#runtime-logic)
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/Archive-CC_BY--NC--SA_4.0-lightgrey.svg)](./LICENSE-CONTENT.md)
 
-The current project already includes:
+A course-design prototype that uses an STM32F103RCT6, a WHEELTEC D24A four-wheel encoder chassis, and a WDD35D4 angular displacement sensor to investigate real-time inverted-pendulum stabilization.
 
-- WDD35D4 angle sampling and angle conversion
-- KEY2 zero calibration and balance start
-- KEY3 manual stop
-- TIM1 `2 ms` interrupt-driven balance loop
-- shared four-wheel PWM output for forward/backward motion
-- encoder-based speed and position feedback
-- LCD local debug display
-- serial debug output for angle, angular rate, speed, position and bias
+![Physical prototype and system overview](./assets/system-overview.png)
 
-This project does not currently implement auto swing-up. The pendulum is manually placed near upright, then the controller attempts to keep it from falling using only forward and backward cart motion.
+## Project at a glance
 
-> 📖 [中文文档 (Chinese README)](./README_CN.md)
+| Item | Details |
+|---|---|
+| Project period | **June 2026** |
+| Course | Control Engineering Principles — course design |
+| Project lead | **Hu Rongjie (胡荣杰 / WuWingKit)** |
+| Team | tulip627722, hzx, Lisa-TTT, zzz-rh |
+| Platform | STM32F103RCT6 + D24A chassis + WDD35D4 angle sensor |
+| Control mode | Manual upright placement; forward/backward balance only |
+| Prototype cost | **Not recorded in the supplied materials — to be added** |
 
----
+### Team contributions
 
-## System Overview
+- **Hu Rongjie — project lead/owner:** overall architecture, system integration, controller iteration, debugging, repository and final archive.
+- **tulip627722:** motor control, PID tuning, and encoder driver.
+- **hzx:** hardware pin mapping and documentation.
+- **Lisa-TTT, zzz-rh:** gyroscope/angular-velocity sensor exploration.
 
-The controller follows an engineering-oriented strategy:
+The final archived controller uses the WDD35D4 angular displacement sensor and discrete angle-rate estimation. Team credits above preserve the roles recorded by the original repository.
 
-1. angle feedback as the primary balancing term
-2. angular-rate feedback to react to falling tendency
-3. speed feedback as damping
-4. position feedback to reduce long-term drift
-5. nonlinear helpers such as minimum output, rescue boost and drift pull-back
-6. automatic stop when the pendulum angle exceeds the safety threshold
+## Commercialization and application analysis
 
-## Hardware
+An inverted-pendulum cart is primarily an education and control-algorithm validation platform. Its commercial value lies in laboratory teaching kits, controller-tuning demonstrations, embedded real-time training, and rapid comparison of PID, state-feedback, LQR, or observer-based methods. The same balance principles also transfer to self-balancing robots and unstable-platform control.
 
-| Component | Detail |
-|-----------|--------|
-| MCU | STM32F103RCT6 (High Density, 256KB Flash, 48KB RAM) |
-| Chassis | WHEELTEC D24A 4-wheel with hall encoder motors |
-| Angle Sensor | WDD35D4 angular displacement sensor |
-| Display | 1.44" 128×128 SPI color LCD |
-| IDE | Keil MDK (project file: `USER/Tb6612demo.uvprojx`) |
-| Library | STM32F10x Standard Peripheral Library V3.5.0 |
+A productized teaching kit would benefit from a rigid modular frame, guarded moving parts, repeatable sensor mounting, guided tuning software, automatic experiment logging, replaceable components, and a documented safety envelope. The present prototype is a course-stage experimental platform and should not be presented as a transportation product or unattended balancing system.
 
----
+## Control strategy
 
-## Pin Map
+The controller combines several feedback terms:
 
-### PWM Output (TIM5, 10kHz)
-
-| Motor | PWM Pin |
-|-------|---------|
-| A | PA0 (TIM5_CH1) |
-| B | PA1 (TIM5_CH2) |
-| C | PA2 (TIM5_CH3) |
-| D | PA3 (TIM5_CH4) |
-
-### Motor Direction
-
-| Motor | IN1 | IN2 |
-|-------|-----|-----|
-| A | PC13 | PC14 |
-| B | PB13 | PB12 |
-| C | PB0 | PB1 |
-| D | PC1 | PC2 |
-
-### Encoder Inputs
-
-| Motor | Phase A | Phase B | Mode |
-|-------|---------|---------|------|
-| A | PC6 | PC7 | TIM8 hardware quadrature |
-| B | PA15 | PB3 | TIM2 hardware quadrature (full remap) |
-| C | PA7 | PA6 | TIM3 hardware quadrature |
-| D | PA8 | PA4 | Software decode, TIM6 ISR @ 50kHz |
-
-### Other Peripherals
-
-| Function | Pin |
-|----------|-----|
-| Battery ADC | PA5 (ADC1_CH5) |
-| Angle Sensor | PC4 (ADC1_CH14) |
-| USART Debug | PA9 (TX), PA10 (RX) @ 115200 |
-| LCD SPI | PB4~PB9 |
-| Standby | Tied to 3.3V |
-
----
-
-## Project Structure
-
-```
-D24Ademo/
-├── CORE/                     CMSIS core + startup
-├── HAREWER/                  Hardware drivers
-│   ├── ADC/                  Battery voltage sampling
-│   ├── ENCODER/              Encoder (3× hardware + 1× software)
-│   ├── GPIO/                 Motor direction pins
-│   ├── LCD/                  1.44" LCD driver
-│   ├── BALANCE/              Balance controller
-│   ├── MOTO/                 Motor direction control
-│   └── PWM/                  TIM5 4-channel PWM
-├── STM32F10x_FWLIB/          STM32F10x StdPeriph Library V3.5.0
-├── SYSTEM/                   System layer (delay, sys, usart)
-├── USER/                     Application code
-│   ├── main.c                Main program
-│   └── Tb6612demo.uvprojx    Keil project file
-├── OBJ/                      Linker script
-├── CONTRIBUTING.md           Team workflow guide (Chinese)
-├── DEVLOG.md                 Development log (Chinese)
-├── 控制工程原理课程设计报告.md  Course design report (Chinese)
-├── 引脚汇总.md                Pin reference table (Chinese)
-└── README_CN.md              Chinese README
+```text
+angle feedback + angular-rate damping
+             - speed damping
+             - position centering
+             + nonlinear rescue / minimum-output compensation
+             → four-wheel PWM
 ```
 
----
+- Angle error is the dominant balancing term.
+- A discrete derivative estimates angular rate and reacts to the falling direction.
+- Encoder feedback damps cart speed and integrates position to reduce long-term drift.
+- Minimum-output compensation helps overcome motor static friction.
+- Rescue boost and drift pull-back assist recovery outside the small-angle region.
+- Output is disabled when the safety-angle threshold is exceeded.
 
-## Current Status
+![Control strategy](./assets/control-strategy.png)
 
-### ✅ Done
-- 72MHz system clock
-- 4-channel PWM @ 10kHz
-- 4× encoder reading (3 hardware + 1 software)
-- WDD35D4 angle sampling and angle conversion
-- KEY2 zero calibration and balance start
-- KEY3 manual stop
-- TIM1-based `2 ms` interrupt control loop
-- angle + angular-rate + speed + position combined control
-- rescue boost, drift pull-back and minimum-output compensation
-- 1.44" LCD real-time debug display
-- USART debug output @ 115200bps
-- Battery voltage monitoring
-- Git + GitHub with branch protection & PR workflow
+## Runtime logic
 
-### ❌ TODO
-- more robust small-angle recentering
-- cleaner model-based tuning
-- optional filtering / state estimation
-- Steering control
-- Auto swing-up (not required in the current project scope)
+1. Initialize the LCD, keys, ADC, PWM, encoders, and timers.
+2. Manually hold the pendulum close to upright.
+3. Press `KEY2` to capture the WDD35D4 zero reference and enable balance control.
+4. Every `2 ms` (`500 Hz`), TIM1 samples the angle, reads four encoders, updates angle rate/speed/position, computes the controller, and writes motor PWM.
+5. `KEY3`, serial stop, or excessive angle disables the motors.
 
----
+The project **does not implement automatic swing-up**. A presentation draft briefly described motion from hanging to upright, but the final firmware and demonstrated workflow require manual upright placement.
 
-## Runtime Logic
+## Hardware and important interfaces
 
-1. Power on and initialize LCD, keys, ADC, PWM, encoders and TIM1.
-2. Manually hold the pendulum near the upright position.
-3. Press `KEY2` to capture the current angle as zero and start balancing.
-4. Every `2 ms`, TIM1 interrupt performs:
-   - angle sensor sampling
-   - encoder reading
-   - angle / angular-rate / speed / position update
-   - balance controller execution
-   - four-wheel PWM update
-5. The main loop handles keys, serial commands and display refresh.
-6. Press `KEY3` or exceed the safety angle to stop output.
+| Function | Implementation |
+|---|---|
+| MCU | STM32F103RCT6, 72 MHz |
+| Chassis | WHEELTEC D24A four-wheel chassis with Hall encoders |
+| Angle sensor | WDD35D4 on `PC4 / ADC1_CH14` |
+| Motor PWM | TIM5 CH1–CH4 on `PA0–PA3`, 10 kHz |
+| Encoder A/B/C | TIM8 / TIM2 / TIM3 hardware quadrature |
+| Encoder D | Software decoding in TIM6 ISR at 50 kHz |
+| Local UI | 1.44-inch 128×128 SPI LCD and keys |
+| Debug | USART1, 115200 bps |
 
----
+## Development progression
 
-## Getting Started
+- Replaced a slow 50 ms software-polling path for encoder D with a 50 kHz TIM6 interrupt decoder.
+- Added 50-sample zero calibration for the WDD35D4 sensor.
+- Consolidated the final balance computation into a deterministic 2 ms TIM1 loop.
+- Added motor dead-zone compensation after observing PWM output without physical motion.
+- Reduced overshoot through gain/limit tuning and added drift detection with reverse pull-back.
 
-### Prerequisites
-- Keil MDK 5 (ARM Compiler 5)
-- ST-Link or J-Link debugger
+![Test and tuning findings](./assets/test-and-tuning.png)
 
-### Build & Flash
-1. Open `USER/Tb6612demo.uvprojx` in Keil MDK
-2. Click **Build** (F7)
-3. Click **Download** (F8)
+## Build and test
 
-> Note:
-> the project has been adjusted to disable JTAG while keeping SWD available.
-> If an old firmware image still blocks normal access, use `Connect under reset` or hold reset while downloading.
+1. Open `USER/Tb6612demo.uvprojx` in Keil MDK 5 using ARM Compiler 5.
+2. Build and flash through ST-Link or J-Link.
+3. Confirm `BOOT0` is low and the LCD debug page appears.
+4. Hold the pendulum near upright and press `KEY2`.
+5. Apply only a small disturbance and keep clear of the moving chassis; press `KEY3` to stop.
 
-### Quick Test Flow
+Serial commands: `z`/`Z` zeroes and starts; `s`/`S` stops. Debug output includes angle, rate, filtered speed, position, bias, ADC, and PWM.
 
-1. Make sure `BOOT0` is tied to GND for normal Flash boot.
-2. Confirm the LCD enters the debug page after power-on.
-3. Hold the pendulum close to upright.
-4. Press `KEY2` to zero and start balance.
-5. Apply a small disturbance and observe whether the cart reacts forward/backward.
-6. Press `KEY3` to stop if needed.
+## Repository contents
 
-### Serial Debug Fields
+- `HAREWER/BALANCE/`: final balance controller
+- `HAREWER/ENCODER/`, `MOTO/`, `PWM/`: motion feedback and actuation
+- `USER/main.c`: initialization, UI, commands, and 2 ms control ISR
+- `DEVLOG.md`: development history
+- `控制工程原理课程设计报告.md` and `倒立摆小车开发文档.pdf`: technical documentation
+- `presentation/project-presentation.pptx`: final course presentation
+- `media/demonstration.mp4`: physical prototype demonstration
+- `assets/`: README images exported from the presentation
 
-UART baud rate is `115200`. The main debug fields are:
+## Current limitations
 
-- `Ang`: current angle
-- `Rate`: estimated angular rate
-- `SF`: filtered speed
-- `Pos`: integrated position term
-- `Bias`: angle bias
-- `PWM`: control output
+- Manual upright placement is required; there is no automatic swing-up.
+- The cart only controls forward/backward motion and does not steer.
+- Small-angle recentering and long-duration drift rejection still require improvement.
+- The controller is empirically tuned; no complete plant identification or formal stability proof is included.
+- Keep the test area clear: the cart can accelerate unexpectedly during recovery.
 
-These fields are important when analyzing oscillation, one-side drift, or insufficient rescue behavior.
+## License
 
-### Serial Commands
+Project-authored documentation, presentation, images, video, and hardware-design material are shared under **CC BY-NC-SA 4.0**; see [LICENSE-CONTENT.md](./LICENSE-CONTENT.md). Source and third-party vendor components retain the terms stated in their respective files.
 
-- `z` / `Z`: zero and start balance
-- `s` / `S`: stop balance output
-
----
-
-## Document Index
-
-- [Development Log](./DEVLOG.md)
-- [Course Design Report](./控制工程原理课程设计报告.md)
-- [Pin Summary](./引脚汇总.md)
-- [Contribution Guide](./CONTRIBUTING.md)
-
----
-
-## Collaboration
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full Git workflow (Chinese).
-
-Quick start:
-```bash
-git clone https://github.com/WuWingKit/Inverted-pendulum.git
-git checkout -b feature/your-feature
-# ... write code ...
-git add -A && git commit -m "what you did"
-git push -u origin feature/your-feature
-# → Open GitHub → Create Pull Request → Review → Merge
-```
-
----
-
-## Team
-
-- **WuWingKit** — project owner
-- **tulip627722** — motor control, PID tuning, encoder driver
-- **hzx** — hardware pin mapping & documentation
-- **Lisa-TTT** — gyroscope / angular velocity sensor development
-- **zzz-rh** — gyroscope / angular velocity sensor development
