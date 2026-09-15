@@ -1,5 +1,7 @@
 # 基于 STM32 的倒立摆小车
 
+![倒立摆小车实体成品](./assets/physical-prototype.jpg)
+
 [English](./README.md) · [演示视频](./media/demonstration.mp4) · [终期汇报](./presentation/project-presentation.pptx) · [课程报告](./控制工程原理课程设计报告.md)
 
 [![STM32F103](https://img.shields.io/badge/MCU-STM32F103RCT6-03234B?logo=stmicroelectronics)](https://www.st.com/en/microcontrollers-microprocessors/stm32f103rc.html)
@@ -9,9 +11,7 @@
 [![Loop](https://img.shields.io/badge/Control_loop-500_Hz-success)](#运行流程)
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/Archive-CC_BY--NC--SA_4.0-lightgrey.svg)](./LICENSE-CONTENT.md)
 
-一套基于 STM32F103RCT6、WHEELTEC D24A 四轮编码器底盘与 WDD35D4 角位移传感器的倒立摆控制课程设计原型。
-
-![实体原型与系统方案](./assets/system-overview.png)
+一套基于 STM32F103RCT6、WHEELTEC D24A 四轮编码器底盘与 WDD35D4 角位移传感器的倒立摆控制课程设计原型。上图是从终期汇报中提取的完成版实体照片。
 
 ## 项目基本信息
 
@@ -69,6 +69,39 @@
 
 项目**没有实现自动起摆**。汇报草稿中曾出现“从自然下垂到直立”的表述，但最终源码和实际演示流程都要求人工扶正后启动。
 
+## 硬件与软件总体架构
+
+![系统组成](./assets/system-overview.png)
+
+```text
+WDD35D4 角度传感器 ─ ADC ─┐
+四路车轮编码器 ─── 定时器 ├─→ TIM1 控制中断，每 2 ms 执行
+                            │      ├─ 角度与角速度估计
+按键 / 串口命令 ───────────┘      ├─ 速度与位置反馈
+                                   ├─ Balance_Update()
+                                   └─ 安全保护与输出限幅
+                                              ↓
+                                      PWM + 方向驱动
+                                              ↓
+                                         四路直流电机
+
+主循环          → 按键、命令、LCD 刷新和串口调试
+TIM6 50 kHz 中断 → D 路编码器软件正交解码
+```
+
+### 固件分层
+
+| 层级 | 主要路径 | 作用 |
+|---|---|---|
+| 应用层 | `USER/main.c`、`USER/key.c` | 上电初始化、调零/启动/停止、LCD、串口调试及 TIM1 控制中断 |
+| 控制器 | `HAREWER/BALANCE/` | 角速度估计、速度滤波、位置积分、救摆、漂移修正、死区补偿与输出限幅 |
+| 反馈采集 | `HAREWER/ADC/`、`ENCODER/`、`FILTER/` | 角度/电池 ADC、四路编码器和信号滤波 |
+| 执行层 | `HAREWER/PWM/`、`MOTO/`、`GPIO/` | 四路 PWM 和电机方向控制 |
+| 人机交互 | `HAREWER/LCD/`、`SYSTEM/usart/` | 本地状态显示与 115200 bps 串口调试 |
+| 平台层 | `CORE/`、`STM32F10x_FWLIB/`、`SYSTEM/` | CMSIS、启动文件、标准外设库、时钟和延时 |
+
+目录名 `HAREWER` 是原工程遗留拼写，为避免破坏 Keil 工程引用路径而保留。
+
 ## 硬件与关键接口
 
 | 功能 | 实现 |
@@ -92,18 +125,38 @@
 
 ![实验调试与结果分析](./assets/test-and-tuning.png)
 
-## 编译与测试
+## 下载、编译与测试
 
-1. 使用 Keil MDK 5（ARM Compiler 5）打开 `USER/Tb6612demo.uvprojx`；
-2. 编译并通过 ST-Link 或 J-Link 烧录；
-3. 确认 `BOOT0` 为低电平且 LCD 出现调试界面；
-4. 扶正摆杆，按下 `KEY2`；
-5. 只施加小扰动并远离运动路径，必要时按 `KEY3` 停止。
+### 1. 下载源码
+
+```bash
+git clone https://github.com/WuWingKit/Inverted-pendulum.git
+cd Inverted-pendulum
+```
+
+没有安装 Git 时，可在 GitHub 选择 **Code → Download ZIP** 并解压。
+
+### 2. 编译与烧录
+
+1. 安装 Keil MDK 5、ARM Compiler 5 和 ST-Link 或 J-Link 驱动；
+2. 打开 `USER/Tb6612demo.uvprojx`；
+3. 按 `F7` 编译现有 Target，在连接电机前应先消除全部编译错误；
+4. 通过 SWD 连接下载器，按 `F8` 烧录；
+5. 确认 `BOOT0` 为低电平，复位后 LCD 出现调试界面。
+
+### 3. 首次受控测试
+
+1. 先架空底盘，分别检查电机方向和四路编码器符号；
+2. 查看 WDD35D4 原始 ADC，确认摆杆倾斜时角度变化方向正确；
+3. 将小车放到空旷地面，人工扶正摆杆并按 `KEY2` 采集零点、启动控制；
+4. 只施加小幅扰动。若电机方向错误或小车持续加速，立即按 `KEY3`；
+5. 修改参数前先查看串口字段：`Ang`、`Rate`、`SF`、`Pos`、`Bias` 和 `PWM`。
 
 串口命令：`z`/`Z` 调零并启动，`s`/`S` 停止。调试输出包括角度、角速度、滤波速度、位置、偏置、ADC 与 PWM。
 
 ## 仓库内容
 
+- `USER/Tb6612demo.uvprojx`：Keil MDK 工程入口
 - `HAREWER/BALANCE/`：最终平衡控制器
 - `HAREWER/ENCODER/`、`MOTO/`、`PWM/`：运动反馈与执行
 - `USER/main.c`：初始化、交互、命令与 2 ms 控制中断
@@ -124,4 +177,3 @@
 ## 协议
 
 项目原创文档、汇报、图片、视频和硬件设计资料采用 **CC BY-NC-SA 4.0**；详见 [LICENSE-CONTENT.md](./LICENSE-CONTENT.md)。源码及第三方厂商组件仍遵循各自文件中注明的许可条款。
-

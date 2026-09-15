@@ -1,5 +1,7 @@
 # STM32 Inverted Pendulum Cart
 
+![Completed inverted-pendulum cart prototype](./assets/physical-prototype.jpg)
+
 [中文](./README.zh-CN.md) · [Demo video](./media/demonstration.mp4) · [Presentation](./presentation/project-presentation.pptx) · [Course report](./控制工程原理课程设计报告.md)
 
 [![STM32F103](https://img.shields.io/badge/MCU-STM32F103RCT6-03234B?logo=stmicroelectronics)](https://www.st.com/en/microcontrollers-microprocessors/stm32f103rc.html)
@@ -9,9 +11,7 @@
 [![Loop](https://img.shields.io/badge/Control_loop-500_Hz-success)](#runtime-logic)
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/Archive-CC_BY--NC--SA_4.0-lightgrey.svg)](./LICENSE-CONTENT.md)
 
-A course-design prototype that uses an STM32F103RCT6, a WHEELTEC D24A four-wheel encoder chassis, and a WDD35D4 angular displacement sensor to investigate real-time inverted-pendulum stabilization.
-
-![Physical prototype and system overview](./assets/system-overview.png)
+A course-design prototype that uses an STM32F103RCT6, a WHEELTEC D24A four-wheel encoder chassis, and a WDD35D4 angular displacement sensor to investigate real-time inverted-pendulum stabilization. The photograph above is the completed physical prototype extracted from the final presentation.
 
 ## Project at a glance
 
@@ -71,6 +71,39 @@ angle feedback + angular-rate damping
 
 The project **does not implement automatic swing-up**. A presentation draft briefly described motion from hanging to upright, but the final firmware and demonstrated workflow require manual upright placement.
 
+## Hardware and software architecture
+
+![System composition](./assets/system-overview.png)
+
+```text
+WDD35D4 angle sensor ── ADC ─┐
+Four wheel encoders ─ timers ├─→ TIM1 control ISR, every 2 ms
+                              │      ├─ angle and angular-rate estimate
+Keys / serial commands ───────┘      ├─ speed and position feedback
+                                     ├─ Balance_Update()
+                                     └─ safety and output limiting
+                                                ↓
+                                      PWM + direction drivers
+                                                ↓
+                                         four DC motors
+
+Main foreground loop → keys, commands, LCD refresh, serial diagnostics
+TIM6 ISR at 50 kHz   → software quadrature decode for encoder D
+```
+
+### Firmware layers
+
+| Layer | Main paths | Responsibility |
+|---|---|---|
+| Application | `USER/main.c`, `USER/key.c` | Startup, zero/start/stop commands, LCD updates, serial diagnostics, and TIM1 control interrupt |
+| Controller | `HAREWER/BALANCE/` | Angle-rate estimation, speed filtering, position integration, rescue logic, drift correction, dead-zone compensation, and output limiting |
+| Feedback | `HAREWER/ADC/`, `ENCODER/`, `FILTER/` | Angle/battery ADC, four encoder channels, and signal filtering |
+| Actuation | `HAREWER/PWM/`, `MOTO/`, `GPIO/` | Four PWM channels and motor direction control |
+| Interface | `HAREWER/LCD/`, `SYSTEM/usart/` | Local status display and 115200 bps diagnostics |
+| Platform | `CORE/`, `STM32F10x_FWLIB/`, `SYSTEM/` | CMSIS, startup, Standard Peripheral Library, clock, and delays |
+
+The directory name `HAREWER` is a historical spelling retained to avoid breaking the existing Keil project paths.
+
 ## Hardware and important interfaces
 
 | Function | Implementation |
@@ -94,18 +127,38 @@ The project **does not implement automatic swing-up**. A presentation draft brie
 
 ![Test and tuning findings](./assets/test-and-tuning.png)
 
-## Build and test
+## Download, build, and test
 
-1. Open `USER/Tb6612demo.uvprojx` in Keil MDK 5 using ARM Compiler 5.
-2. Build and flash through ST-Link or J-Link.
-3. Confirm `BOOT0` is low and the LCD debug page appears.
-4. Hold the pendulum near upright and press `KEY2`.
-5. Apply only a small disturbance and keep clear of the moving chassis; press `KEY3` to stop.
+### 1. Download the source
+
+```bash
+git clone https://github.com/WuWingKit/Inverted-pendulum.git
+cd Inverted-pendulum
+```
+
+Without Git, choose **Code → Download ZIP** on GitHub and extract the archive.
+
+### 2. Build and flash
+
+1. Install Keil MDK 5 with ARM Compiler 5 and an ST-Link or J-Link driver.
+2. Open `USER/Tb6612demo.uvprojx`.
+3. Build the existing target with `F7` and resolve all errors before connecting the motors.
+4. Connect the programmer through SWD and download with `F8`.
+5. Confirm `BOOT0` is low and the LCD debug page appears after reset.
+
+### 3. First controlled test
+
+1. Raise the chassis so the wheels can rotate freely and verify motor direction and all four encoder signs.
+2. Check the WDD35D4 raw ADC value and confirm that tilting the rod changes angle in the expected direction.
+3. Put the cart on a clear floor, hold the pendulum near upright, and press `KEY2` to capture zero and start.
+4. Apply only a small disturbance. Press `KEY3` immediately if the motors drive in the wrong direction or the cart accelerates away.
+5. Inspect the serial fields before changing gains: `Ang`, `Rate`, `SF`, `Pos`, `Bias`, and `PWM`.
 
 Serial commands: `z`/`Z` zeroes and starts; `s`/`S` stops. Debug output includes angle, rate, filtered speed, position, bias, ADC, and PWM.
 
 ## Repository contents
 
+- `USER/Tb6612demo.uvprojx`: Keil MDK project entry point
 - `HAREWER/BALANCE/`: final balance controller
 - `HAREWER/ENCODER/`, `MOTO/`, `PWM/`: motion feedback and actuation
 - `USER/main.c`: initialization, UI, commands, and 2 ms control ISR
@@ -126,4 +179,3 @@ Serial commands: `z`/`Z` zeroes and starts; `s`/`S` stops. Debug output includes
 ## License
 
 Project-authored documentation, presentation, images, video, and hardware-design material are shared under **CC BY-NC-SA 4.0**; see [LICENSE-CONTENT.md](./LICENSE-CONTENT.md). Source and third-party vendor components retain the terms stated in their respective files.
-
